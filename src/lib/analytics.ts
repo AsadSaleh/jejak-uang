@@ -68,8 +68,9 @@ export function totals(entries: Entry[]): Totals {
   let income = 0
   let expense = 0
   for (const e of entries) {
+    // Transfers move money between the user's own accounts -> net-neutral.
     if (e.type === 'income') income += e.amount
-    else expense += e.amount
+    else if (e.type === 'expense') expense += e.amount
   }
   return { income, expense, net: income - expense }
 }
@@ -106,6 +107,7 @@ export function buildDailySeries(
   const byDay = new Map<string, { income: number; expense: number }>()
   for (const e of entries) {
     if (e.date < format(from, 'yyyy-MM-dd') || e.date > format(to, 'yyyy-MM-dd')) continue
+    if (e.type !== 'income' && e.type !== 'expense') continue
     const cur = byDay.get(e.date) ?? { income: 0, expense: 0 }
     if (e.type === 'income') cur.income += e.amount
     else cur.expense += e.amount

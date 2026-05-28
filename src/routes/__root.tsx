@@ -7,6 +7,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
+import { ToastProvider } from '../components/ToastProvider'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
@@ -28,18 +29,22 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
-        <div className="mx-auto max-w-6xl px-6 py-6">
-          <header className="mb-8 flex items-center justify-between">
-            <Link to="/" className="text-xl font-semibold tracking-tight">
-              💰 Money Tracker
-            </Link>
-            <nav className="flex gap-1 rounded-lg bg-white p-1 ring-1 ring-slate-200">
-              <NavLink to="/">Dashboard</NavLink>
-              <NavLink to="/entries">Entries</NavLink>
-            </nav>
-          </header>
-          <main>{children}</main>
-        </div>
+        <ToastProvider>
+          <div className="mx-auto max-w-6xl px-6 py-6">
+            <header className="mb-8 flex items-center justify-between">
+              <Link to="/" className="text-xl font-semibold tracking-tight">
+                💰 Money Tracker
+              </Link>
+              <nav className="flex gap-1 rounded-lg bg-white p-1 ring-1 ring-slate-200">
+                <NavLink to="/">Dashboard</NavLink>
+                <NavLink to="/entries">Entries</NavLink>
+                <NavLink to="/import">Import</NavLink>
+                <NavLink to="/accounts">Accounts</NavLink>
+              </nav>
+            </header>
+            <main>{children}</main>
+          </div>
+        </ToastProvider>
         <TanStackDevtools
           config={{ position: 'bottom-right' }}
           plugins={[
@@ -59,7 +64,7 @@ function NavLink({
   to,
   children,
 }: {
-  to: '/' | '/entries'
+  to: '/' | '/entries' | '/import' | '/accounts'
   children: React.ReactNode
 }) {
   return (

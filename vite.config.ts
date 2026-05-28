@@ -8,6 +8,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  // The liteparse wasm glue must not be pre-bundled by esbuild.
+  optimizeDeps: { exclude: ['@llamaindex/liteparse-wasm'] },
   plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
 })
 

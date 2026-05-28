@@ -7,8 +7,11 @@ export interface UseEntriesResult {
   loading: boolean
   error: Error | null
   create: (input: NewEntry) => Promise<Entry>
+  createMany: (inputs: NewEntry[]) => Promise<Entry[]>
   update: (id: string, patch: EntryPatch) => Promise<Entry>
   remove: (id: string) => Promise<void>
+  removeMany: (ids: string[]) => Promise<void>
+  restore: (entries: Entry[]) => Promise<void>
   refresh: () => Promise<void>
 }
 
@@ -43,6 +46,15 @@ export function useEntries(): UseEntriesResult {
     [refresh],
   )
 
+  const createMany = useCallback(
+    async (inputs: NewEntry[]) => {
+      const created = await entryRepository.createMany(inputs)
+      await refresh()
+      return created
+    },
+    [refresh],
+  )
+
   const update = useCallback(
     async (id: string, patch: EntryPatch) => {
       const updated = await entryRepository.update(id, patch)
@@ -60,5 +72,32 @@ export function useEntries(): UseEntriesResult {
     [refresh],
   )
 
-  return { entries, loading, error, create, update, remove, refresh }
+  const removeMany = useCallback(
+    async (ids: string[]) => {
+      await entryRepository.removeMany(ids)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const restore = useCallback(
+    async (toRestore: Entry[]) => {
+      await entryRepository.restore(toRestore)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  return {
+    entries,
+    loading,
+    error,
+    create,
+    createMany,
+    update,
+    remove,
+    removeMany,
+    restore,
+    refresh,
+  }
 }

@@ -130,7 +130,7 @@ function Dashboard() {
                     tickFormatter={(v) => formatCurrency(v).replace('.00', '')}
                   />
                   <Tooltip
-                    formatter={(v: number) => formatCurrency(v)}
+                    formatter={(v) => formatCurrency(Number(v))}
                     contentStyle={{
                       borderRadius: 8,
                       border: '1px solid #e2e8f0',
@@ -188,7 +188,7 @@ function Dashboard() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(v: number) => formatCurrency(v)}
+                        formatter={(v) => formatCurrency(Number(v))}
                         contentStyle={{
                           borderRadius: 8,
                           border: '1px solid #e2e8f0',
