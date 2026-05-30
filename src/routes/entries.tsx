@@ -268,10 +268,14 @@ function EntriesPage() {
                     )}
                   </Td>
                   <Td
-                    className="max-w-xs truncate text-slate-500 dark:text-slate-400"
+                    className="max-w-xs text-slate-500 dark:text-slate-400"
                     title={entry.note || undefined}
                   >
-                    {entry.note || '—'}
+                    {/* line-clamp needs a block-level child to behave reliably
+                        inside <td>; the wrapper div is intentional. */}
+                    <div className="line-clamp-3 whitespace-normal break-words">
+                      {entry.note || '—'}
+                    </div>
                   </Td>
                   <Td
                     className={`text-right font-medium tabular-nums ${amountColor(entry.type)}`}

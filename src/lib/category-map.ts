@@ -107,15 +107,27 @@ const INCOME_RULES: Array<[RegExp, string]> = [
   [/\b(dividen|dividend|interest|bunga|investment|investasi|return)\b/i, 'Investasi'],
 ]
 
+// Indonesian bank descriptions frequently smush amounts together with merchant
+// names (e.g. "TGL: 26/04 — QR 014 — 00000.00PIPILTIN P"). \b word boundaries
+// don't match between digits and letters, so keyword rules silently miss those
+// rows. Splitting at digit↔letter transitions restores the boundaries without
+// having to weaken every individual regex.
+function normalizeForMatching(text: string): string {
+  return text
+    .replace(/(\d)([A-Za-z])/g, '$1 $2')
+    .replace(/([A-Za-z])(\d)/g, '$1 $2')
+}
+
 export function guessCategory(
   text: string,
   type: EntryType,
   amount?: number,
 ): string | null {
   const allowed = DEFAULT_CATEGORIES[type]
+  const normalized = normalizeForMatching(text)
 
   if (type === 'expense' && amount !== undefined) {
-    const fromAmount = guessFromAmount(text, amount)
+    const fromAmount = guessFromAmount(normalized, amount)
     if (fromAmount && allowed.includes(fromAmount)) return fromAmount
   }
 
@@ -123,7 +135,7 @@ export function guessCategory(
     type === 'expense' ? EXPENSE_RULES : type === 'income' ? INCOME_RULES : null
   if (!rules) return null
   for (const [re, cat] of rules) {
-    if (re.test(text) && allowed.includes(cat)) return cat
+    if (re.test(normalized) && allowed.includes(cat)) return cat
   }
   return null
 }
