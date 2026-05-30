@@ -5,10 +5,18 @@ import { extractGeneric } from './generic'
 import { extractJago } from './jago'
 import { extractBsi } from './bsi'
 import { extractBcas } from './bcas'
+import { extractBca } from './bca'
 import { extractMandiri } from './mandiri'
 
 export type { BankId }
-export { extractGeneric, extractJago, extractBsi, extractBcas, extractMandiri }
+export {
+  extractGeneric,
+  extractJago,
+  extractBsi,
+  extractBcas,
+  extractBca,
+  extractMandiri,
+}
 
 export interface ExtractedDoc {
   bank: BankId
@@ -24,6 +32,8 @@ export function extractTransactions(parsed: ParsedDoc): ExtractedDoc {
       return { bank, candidates: extractBsi(parsed) }
     case 'bcas':
       return { bank, candidates: extractBcas(parsed) }
+    case 'bca':
+      return { bank, candidates: extractBca(parsed) }
     case 'mandiri':
       return { bank, candidates: extractMandiri(parsed) }
     default:

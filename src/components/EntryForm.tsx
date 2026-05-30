@@ -130,10 +130,9 @@ export function EntryForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 md:grid-cols-6"
+      className="flex flex-col gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
     >
-      <div className="md:col-span-2">
-        <Label htmlFor="type">Type</Label>
+      <Field label="Type" htmlFor="type">
         <Select
           value={form.type}
           onValueChange={(v) => handleTypeChange(v as EntryType)}
@@ -149,41 +148,40 @@ export function EntryForm({
             ))}
           </SelectContent>
         </Select>
+      </Field>
+
+      {/* Date + Amount remain side-by-side: both short, paired logically. */}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Date" htmlFor="date">
+          <input
+            id="date"
+            type="date"
+            required
+            value={form.date}
+            onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Amount" htmlFor="amount">
+          <NumericFormat
+            id="amount"
+            value={form.amount || ''}
+            prefix="Rp "
+            thousandSeparator="."
+            decimalSeparator=","
+            decimalScale={2}
+            allowNegative={false}
+            inputMode="decimal"
+            placeholder="Rp 0"
+            onValueChange={(values) =>
+              setForm((f) => ({ ...f, amount: values.floatValue ?? 0 }))
+            }
+            className={inputCls}
+          />
+        </Field>
       </div>
 
-      <div className="md:col-span-1">
-        <Label htmlFor="date">Date</Label>
-        <input
-          id="date"
-          type="date"
-          required
-          value={form.date}
-          onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-          className={inputCls}
-        />
-      </div>
-
-      <div className="md:col-span-1">
-        <Label htmlFor="amount">Amount</Label>
-        <NumericFormat
-          id="amount"
-          value={form.amount || ''}
-          prefix="Rp "
-          thousandSeparator="."
-          decimalSeparator=","
-          decimalScale={2}
-          allowNegative={false}
-          inputMode="decimal"
-          placeholder="Rp 0"
-          onValueChange={(values) =>
-            setForm((f) => ({ ...f, amount: values.floatValue ?? 0 }))
-          }
-          className={inputCls}
-        />
-      </div>
-
-      <div className="md:col-span-2">
-        <Label htmlFor="category">Category</Label>
+      <Field label="Category" htmlFor="category">
         <Select
           value={form.category}
           onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}
@@ -199,44 +197,28 @@ export function EntryForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      <div className="flex items-end md:col-span-2">
-        <label className="flex items-center gap-2 pb-2 text-sm text-slate-700 dark:text-slate-200">
-          <input
-            type="checkbox"
-            checked={form.needsReview}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, needsReview: e.target.checked }))
-            }
-            className="h-4 w-4 rounded border-slate-300"
-          />
-          Needs review
-        </label>
-      </div>
+      </Field>
 
       {transferMode ? (
         <>
-          <div className="md:col-span-3">
-            <Label htmlFor="from">From account</Label>
+          <Field label="From account" htmlFor="from">
             <AccountSelect
               id="from"
               accounts={accounts}
               value={form.fromAccountId}
               onChange={(v) => setForm((f) => ({ ...f, fromAccountId: v }))}
             />
-          </div>
-          <div className="md:col-span-3">
-            <Label htmlFor="to">To account</Label>
+          </Field>
+          <Field label="To account" htmlFor="to">
             <AccountSelect
               id="to"
               accounts={accounts}
               value={form.toAccountId}
               onChange={(v) => setForm((f) => ({ ...f, toAccountId: v }))}
             />
-          </div>
+          </Field>
           {accounts.length === 0 && (
-            <p className="md:col-span-6 text-sm text-amber-700">
+            <p className="text-sm text-amber-700 dark:text-amber-300">
               No accounts registered yet.{' '}
               <Link to="/accounts" className="font-medium underline">
                 Add your accounts
@@ -246,8 +228,7 @@ export function EntryForm({
           )}
         </>
       ) : (
-        <div className="md:col-span-3">
-          <Label htmlFor="account">Account (optional)</Label>
+        <Field label="Account (optional)" htmlFor="account">
           <AccountSelect
             id="account"
             accounts={accounts}
@@ -255,11 +236,10 @@ export function EntryForm({
             onChange={(v) => setForm((f) => ({ ...f, accountId: v }))}
             allowEmpty
           />
-        </div>
+        </Field>
       )}
 
-      <div className="md:col-span-6">
-        <Label htmlFor="note">Note</Label>
+      <Field label="Note" htmlFor="note">
         <input
           id="note"
           type="text"
@@ -268,9 +248,21 @@ export function EntryForm({
           placeholder="Optional"
           className={inputCls}
         />
-      </div>
+      </Field>
 
-      <div className="md:col-span-6 flex items-center justify-end gap-2">
+      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+        <input
+          type="checkbox"
+          checked={form.needsReview}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, needsReview: e.target.checked }))
+          }
+          className="h-4 w-4 rounded border-slate-300"
+        />
+        Needs review
+      </label>
+
+      <div className="mt-2 flex items-center justify-end gap-2">
         {onCancel && (
           <button
             type="button"
@@ -283,12 +275,29 @@ export function EntryForm({
         <button
           type="submit"
           disabled={submitting || !form.amount || transferIncomplete}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
         >
           {submitting ? 'Saving…' : submitLabel}
         </button>
       </div>
     </form>
+  )
+}
+
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string
+  htmlFor?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+    </div>
   )
 }
 

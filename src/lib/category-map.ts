@@ -22,23 +22,25 @@ const EXPENSE_RULES: Array<[RegExp, string]> = [
   [/\btop[- ]?up\b/i, 'Top-up'],
   [/\b(ovo|gopay|shopeepay|linkaja|jenius pay)\b/i, 'Top-up'],
 
-  // Coffee — kept above the broader Food rules so cafés don't get tagged as Makan.
+  // Coffee — kept above the broader Food rules so cafés don't get tagged as
+  // Makan. "indomaret point" must precede the plain "indomaret" Groceries
+  // rule below (the Coffee block already runs first, so this works).
   [/\b(kopi|coffee|cafe|kafe|kopitiam)\b/i, 'Kopi'],
   [
-    /\b(starbucks|excelso|coffee bean|tomoro|janji jiwa|kopi kenangan|fore|filosofi kopi|anomali|common grounds)\b/i,
+    /\b(starbucks|excelso|coffee bean|tomoro|janji jiwa|kopi kenangan|fore|filosofi kopi|anomali|common grounds|tuku|indomaret\s+point)\b/i,
     'Kopi',
   ],
 
   // Groceries — Indonesian mini-marts, supermarkets, and convenience stores.
   // FMI = Family Mart Indonesia (convenience store, not a food court).
   [
-    /\b(alfamart|alfa midi|alfamidi|indomaret|hypermart|carrefour|superindo|ranch market|farmers market|grand lucky|kemchicks|hero|family\s*mart|fmi)\b/i,
+    /\b(alfamart|alfa midi|alfamidi|indomaret|hypermart|carrefour|superindo|ranch market|farmers market|grand lucky|kemchicks|hero|family\s*mart|fmi|astro|tiptop|tip\s+top)\b/i,
     'Belanja Harian',
   ],
 
   // Food chains + Indonesian food keywords.
   [
-    /\b(mcdonald|mcd|kfc|burger king|cfc|pizza|domino|hokben|hoka|chatime|yoshinoya|wendy|j\.?co|dunkin|geprek|hisana|bakmi|sushi|ramen)\b/i,
+    /\b(mcdonald|mcd|kfc|burger king|cfc|pizza|domino|hokben|hoka|chatime|yoshinoya|wendy|j\.?co|dunkin|geprek|hisana|bakmi|sushi|ramen|pipiltin|roscik)\b/i,
     'Makan',
   ],
   [
