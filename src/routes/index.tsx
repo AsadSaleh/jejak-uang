@@ -270,6 +270,12 @@ function Dashboard() {
                         innerRadius={50}
                         outerRadius={90}
                         paddingAngle={2}
+                        // Start at 12 o'clock and render clockwise — the
+                        // conventional "largest first" arrangement. Recharts'
+                        // default (0° = 3 o'clock, counter-clockwise) buries
+                        // the biggest slice on the right.
+                        startAngle={90}
+                        endAngle={-270}
                       >
                         {byCategory.map((row, i) => (
                           <Cell
@@ -297,17 +303,35 @@ function Dashboard() {
                         layout="vertical"
                         verticalAlign="middle"
                         align="right"
-                        // Explicit payload forces the legend to match the
-                        // sorted byCategory order (desc by total) — same as
-                        // the Top categories list. Recharts v3 hid `payload`
-                        // from the public Legend typings but it still works.
-                        // @ts-expect-error - runtime-supported, omitted from types
-                        payload={byCategory.map((row, i) => ({
-                          value: `${row.category} (${row.count})`,
-                          type: 'square',
-                          id: row.category,
-                          color: PIE_COLORS[i % PIE_COLORS.length],
-                        }))}
+                        // Recharts v3 reorders pie legend entries by slice
+                        // angle even when an explicit `payload` is provided.
+                        // Side-step the issue entirely by rendering our own
+                        // list — order is then guaranteed to match byCategory
+                        // (desc by total), same as the Top categories card.
+                        content={() => (
+                          <ul className="flex flex-col gap-1.5">
+                            {byCategory.map((row, i) => (
+                              <li
+                                key={row.category}
+                                className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200"
+                              >
+                                <span
+                                  className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
+                                  style={{
+                                    backgroundColor:
+                                      PIE_COLORS[i % PIE_COLORS.length],
+                                  }}
+                                />
+                                <span>
+                                  {row.category}{' '}
+                                  <span className="text-slate-400 dark:text-slate-500">
+                                    ({row.count})
+                                  </span>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -326,36 +350,44 @@ function Dashboard() {
                   </li>
                 ) : (
                   byCategory.slice(0, 6).map((row, i) => (
-                    <li key={row.category} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="inline-block h-2.5 w-2.5 rounded-full"
+                    <li key={row.category}>
+                      <Link
+                        to="/entries"
+                        search={{ category: row.category }}
+                        className="group block space-y-1 rounded-md px-1 py-0.5 -mx-1 transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                        title={`Show ${row.count} ${row.category} ${row.count === 1 ? 'entry' : 'entries'}`}
+                      >
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="inline-block h-2.5 w-2.5 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  PIE_COLORS[i % PIE_COLORS.length],
+                              }}
+                            />
+                            <span className="font-medium text-slate-700 group-hover:text-slate-900 dark:text-slate-200 dark:group-hover:text-white">
+                              {row.category}
+                            </span>
+                            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                              {row.count}
+                            </span>
+                          </div>
+                          <span className="tabular-nums text-slate-900 dark:text-slate-100">
+                            {formatCurrency(row.total)}
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div
+                            className="h-full rounded-full"
                             style={{
+                              width: `${Math.max(2, row.share * 100)}%`,
                               backgroundColor:
                                 PIE_COLORS[i % PIE_COLORS.length],
                             }}
                           />
-                          <span className="font-medium text-slate-700 dark:text-slate-200">
-                            {row.category}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                            {row.count}
-                          </span>
                         </div>
-                        <span className="tabular-nums text-slate-900 dark:text-slate-100">
-                          {formatCurrency(row.total)}
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.max(2, row.share * 100)}%`,
-                            backgroundColor: PIE_COLORS[i % PIE_COLORS.length],
-                          }}
-                        />
-                      </div>
+                      </Link>
                     </li>
                   ))
                 )}

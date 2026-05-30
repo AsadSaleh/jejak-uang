@@ -16,6 +16,7 @@ import {
   Plug,
   Repeat,
   ShoppingBag,
+  Sparkles,
   ShoppingCart,
   Smartphone,
   Tag,
@@ -34,7 +35,8 @@ import { Badge } from './ui/badge'
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   // Indonesian — expense
   makan: Utensils,
-  kopi: Coffee,
+  kopi: Coffee, // legacy label, retained for in-flight rows pre-migration
+  'kopi & teh': Coffee,
   'belanja harian': ShoppingCart,
   transportasi: Car,
   'tempat tinggal': Home,
@@ -44,6 +46,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   air: Droplet,
   hiburan: Film,
   kesehatan: HeartPulse,
+  kecantikan: Sparkles,
   belanja: ShoppingBag,
   pendidikan: BookOpen,
   'top-up': Wallet,

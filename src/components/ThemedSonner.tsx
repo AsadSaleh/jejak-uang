@@ -8,7 +8,7 @@ export function ThemedSonner() {
   return (
     <Toaster
       theme={theme}
-      position="top-right"
+      position="bottom-right"
       richColors
       closeButton
       toastOptions={{ duration: 4000 }}

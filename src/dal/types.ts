@@ -92,7 +92,7 @@ export const DEFAULT_CATEGORIES: Record<EntryType, readonly string[]> = {
   income: ['Gaji', 'Bonus', 'Investasi', 'Hadiah', 'Lainnya'],
   expense: [
     'Makan',
-    'Kopi',
+    'Kopi & Teh',
     'Belanja Harian',
     'Transportasi',
     'Tempat Tinggal',
@@ -102,6 +102,7 @@ export const DEFAULT_CATEGORIES: Record<EntryType, readonly string[]> = {
     'Air',
     'Hiburan',
     'Kesehatan',
+    'Kecantikan',
     'Belanja',
     'Pendidikan',
     'Top-up',

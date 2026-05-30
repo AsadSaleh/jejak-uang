@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { DetectedAccountsPanel } from '../components/DetectedAccountsPanel'
@@ -40,12 +40,12 @@ function ImportPage() {
   const { createMany, refresh } = useEntries()
   const { create: createBatch } = useBatches()
   const { addToast } = useToast()
+  const navigate = useNavigate()
 
   const [rows, setRows] = useState<ReviewRow[] | null>(null)
   const [parsing, setParsing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
-  const [importedCount, setImportedCount] = useState<number | null>(null)
   const [detected, setDetected] = useState<DetectedStatementAccount | null>(null)
   const [bank, setBank] = useState<BankId | null>(null)
   const [needsPassword, setNeedsPassword] = useState(false)
@@ -97,7 +97,6 @@ function ImportPage() {
   ) {
     setParsing(true)
     setError(null)
-    setImportedCount(null)
     setFileName(incomingFileName)
     try {
       const { doc, unlockedBySaved } = await autoUnlock(bytes, password)
@@ -238,8 +237,16 @@ function ImportPage() {
       await refresh()
       toast.success(
         `Imported ${included.length} ${included.length === 1 ? 'entry' : 'entries'}`,
+        {
+          // Keep this one around longer so the View-entries action is
+          // reachable; the regular 4s isn't enough.
+          duration: 12000,
+          action: {
+            label: 'View entries',
+            onClick: () => navigate({ to: '/entries' }),
+          },
+        },
       )
-      setImportedCount(included.length)
       setRows(null)
       setDetected(null)
       setBank(null)
@@ -267,16 +274,6 @@ function ImportPage() {
             Accounts
           </Link>{' '}
           first so transfers between your own banks are detected automatically.
-        </p>
-      )}
-
-      {importedCount !== null && (
-        <p className="rounded-md bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Imported {importedCount}{' '}
-          {importedCount === 1 ? 'entry' : 'entries'}.{' '}
-          <Link to="/entries" className="font-medium underline">
-            View entries
-          </Link>
         </p>
       )}
 

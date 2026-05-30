@@ -15,6 +15,7 @@ export interface EntriesFiltersState {
   accountId: string // '' = all
   needsReview: 'all' | 'yes' | 'no'
   batchId: string // '' = all
+  category: string // '' = all
   search: string
 }
 
@@ -24,6 +25,7 @@ export const DEFAULT_FILTERS: EntriesFiltersState = {
   accountId: '',
   needsReview: 'all',
   batchId: '',
+  category: '',
   search: '',
 }
 
@@ -34,6 +36,7 @@ export function isFilterActive(filters: EntriesFiltersState): boolean {
     filters.accountId !== '' ||
     filters.needsReview !== 'all' ||
     filters.batchId !== '' ||
+    filters.category !== '' ||
     filters.search !== ''
   )
 }
@@ -43,6 +46,7 @@ interface Props {
   setFilters: (next: EntriesFiltersState) => void
   accounts: Account[]
   batches: ImportBatch[]
+  categories: string[]
 }
 
 const TYPE_OPTIONS: { value: EntryType | 'all'; label: string }[] = [
@@ -58,7 +62,13 @@ function batchLabel(b: ImportBatch): string {
   return `${b.bank.toUpperCase()} · ${b.fileName} · ${when}`
 }
 
-export function EntriesFilters({ filters, setFilters, accounts, batches }: Props) {
+export function EntriesFilters({
+  filters,
+  setFilters,
+  accounts,
+  batches,
+  categories,
+}: Props) {
   const update = (patch: Partial<EntriesFiltersState>) =>
     setFilters({ ...filters, ...patch })
 
@@ -135,6 +145,32 @@ export function EntriesFilters({ filters, setFilters, accounts, batches }: Props
                 {accounts.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.bank} — {a.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Category */}
+        {categories.length > 0 && (
+          <div className="w-40">
+            <Select
+              value={filters.category || 'all'}
+              onValueChange={(v) =>
+                update({ category: v === 'all' ? '' : v })
+              }
+            >
+              <SelectTrigger className="h-8">
+                <span className="truncate text-xs">
+                  {filters.category || 'Any category'}
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any category</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -248,6 +284,7 @@ export function applyFilters(
     if (filters.needsReview === 'yes' && !e.needsReview) return false
     if (filters.needsReview === 'no' && e.needsReview) return false
     if (filters.batchId && e.importBatchId !== filters.batchId) return false
+    if (filters.category && e.category !== filters.category) return false
     if (filters.search) {
       const q = filters.search.toLowerCase()
       const hay = `${e.note} ${e.rawText ?? ''} ${e.category}`.toLowerCase()

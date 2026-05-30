@@ -9,6 +9,8 @@ const LEGACY_KEY = 'money-tracker.entries.v1'
 // "Food" and "Utilities" are special-cased: we re-run the keyword guesser so
 // old rows can be split into Kopi / Makan and Listrik / Pulsa / Internet / Air.
 const CATEGORY_TRANSLATIONS: Record<string, string> = {
+  // 2026-05 rename: tea chains moved into the coffee category.
+  Kopi: 'Kopi & Teh',
   Groceries: 'Belanja Harian',
   Transport: 'Transportasi',
   Housing: 'Tempat Tinggal',

@@ -28,17 +28,32 @@ import {
   SelectTrigger,
 } from '../components/ui/select'
 
-export const Route = createFileRoute('/entries')({ component: EntriesPage })
+type EntriesSearch = { category?: string }
+
+export const Route = createFileRoute('/entries')({
+  component: EntriesPage,
+  // Allow ?category=… to deep-link with a preset filter (used by the
+  // "Top categories" list on the dashboard). Returns a partial so other
+  // navigations to /entries don't need to pass a `search` object.
+  validateSearch: (search: Record<string, unknown>): EntriesSearch => {
+    const c = search.category
+    return typeof c === 'string' && c ? { category: c } : {}
+  },
+})
 
 function EntriesPage() {
   const { entries, loading, create, update, removeMany, restore } = useEntries()
   const { accounts } = useAccounts()
   const { batches, remove: removeBatch } = useBatches()
   const { addToast } = useToast()
+  const { category: categoryFromUrl } = Route.useSearch()
   const [editing, setEditing] = useState<Entry | null>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [filters, setFilters] = useState<EntriesFiltersState>(DEFAULT_FILTERS)
+  const [filters, setFilters] = useState<EntriesFiltersState>(() => ({
+    ...DEFAULT_FILTERS,
+    category: categoryFromUrl ?? '',
+  }))
 
   function openCreate() {
     setEditing(null)
@@ -64,6 +79,12 @@ function EntriesPage() {
     () => applyFilters(entries, filters) as Entry[],
     [entries, filters],
   )
+
+  const categories = useMemo(() => {
+    const set = new Set<string>()
+    for (const e of entries) set.add(e.category)
+    return [...set].sort()
+  }, [entries])
 
   const activeBatch = useMemo(
     () =>
@@ -145,6 +166,7 @@ function EntriesPage() {
         setFilters={setFilters}
         accounts={accounts}
         batches={batches}
+        categories={categories}
       />
 
       {activeBatch && (

@@ -22,13 +22,15 @@ const EXPENSE_RULES: Array<[RegExp, string]> = [
   [/\btop[- ]?up\b/i, 'Top-up'],
   [/\b(ovo|gopay|shopeepay|linkaja|jenius pay)\b/i, 'Top-up'],
 
-  // Coffee — kept above the broader Food rules so cafés don't get tagged as
-  // Makan. "indomaret point" must precede the plain "indomaret" Groceries
-  // rule below (the Coffee block already runs first, so this works).
-  [/\b(kopi|coffee|cafe|kafe|kopitiam)\b/i, 'Kopi'],
+  // Coffee & tea — café-style drinks share the same consumption pattern, so
+  // bubble-tea and milk-tea chains live here rather than in Makan.
+  // Kept above the broader Food rules so cafés don't get tagged as Makan.
+  // "indomaret point" must precede the plain "indomaret" Groceries rule
+  // below (the Coffee block already runs first, so this works).
+  [/\b(kopi|coffee|cafe|kafe|kopitiam|teh|teazzi)\b/i, 'Kopi & Teh'],
   [
-    /\b(starbucks|excelso|coffee bean|tomoro|janji jiwa|kopi kenangan|fore|filosofi kopi|anomali|common grounds|tuku|indomaret\s+point)\b/i,
-    'Kopi',
+    /\b(starbucks|excelso|coffee bean|tomoro|janji jiwa|kopi kenangan|fore|filosofi kopi|anomali|common grounds|tuku|indomaret\s+point|chatime|koi|koi\s*the|haus|xingfutang|gulu\s*gulu|pi\s*tea|onezo|tealive|share\s*tea)\b/i,
+    'Kopi & Teh',
   ],
 
   // Groceries — Indonesian mini-marts, supermarkets, and convenience stores.
@@ -40,14 +42,14 @@ const EXPENSE_RULES: Array<[RegExp, string]> = [
 
   // Food chains + Indonesian food keywords.
   [
-    /\b(mcdonald|mcd|kfc|burger king|cfc|pizza|domino|hokben|hoka|chatime|yoshinoya|wendy|j\.?co|dunkin|geprek|hisana|bakmi|sushi|ramen|pipiltin|roscik)\b/i,
+    /\b(mcdonald|mcd|kfc|burger king|cfc|pizza|domino|hokben|hoka|yoshinoya|wendy|j\.?co|dunkin|geprek|hisana|bakmi|sushi|ramen|pipiltin|roscik)\b/i,
     'Makan',
   ],
   [
     /\b(resto|restoran|restaurant|warung|warkop|warmindo|rumah makan|rm\s|food court|kantin)\b/i,
     'Makan',
   ],
-  [/\b(ayam|nasi|bakso|mie|soto|sate|gado|martabak|pecel|rendang|bubur)\b/i, 'Makan'],
+  [/\b(ayam|nasi|bakso|mie|soto|sate|gado|martabak|pecel|rendang|bubur|somay|siomay|lotek|tahu telor|tahutelor|)\b/i, 'Makan'],
   [/\bqr\s+(rm|warung|wikusama|royal|galaxy)\b/i, 'Makan'],
 
   // Transportation.
@@ -77,6 +79,13 @@ const EXPENSE_RULES: Array<[RegExp, string]> = [
   [
     /\b(apotek|apotik|farmasi|kimia farma|guardian|watson|century|viva|rs |rumah sakit|hospital|klinik|halodoc|alodokter)\b/i,
     'Kesehatan',
+  ],
+
+  // Beauty / cosmetics. Placed above the generic Shopping rule so beauty
+  // retailers don't get the broader 'Belanja' tag.
+  [
+    /\b(sociolla|sephora|the body shop|innisfree|althea|skinproud|female daily|laneige|nature republic|the saem|kecantikan|makeup|cosmetics)\b/i,
+    'Kecantikan',
   ],
 
   // Shopping (e-commerce + retail; non-grocery).
@@ -113,9 +122,17 @@ const INCOME_RULES: Array<[RegExp, string]> = [
 // rows. Splitting at digit↔letter transitions restores the boundaries without
 // having to weaken every individual regex.
 function normalizeForMatching(text: string): string {
-  return text
-    .replace(/(\d)([A-Za-z])/g, '$1 $2')
-    .replace(/([A-Za-z])(\d)/g, '$1 $2')
+  return (
+    text
+      // digit↔letter smushing ("00000.00PIPILTIN").
+      .replace(/(\d)([A-Za-z])/g, '$1 $2')
+      .replace(/([A-Za-z])(\d)/g, '$1 $2')
+      // long-lowercase-run -> uppercase letter ("SociollaSA" -> "Sociolla SA").
+      // The 4+ lowercase floor protects PascalCase brands like "GoFood" /
+      // "MyBCA" / "iCloud" — anything where the lowercase run before the next
+      // capital is too short to be a complete brand name.
+      .replace(/([a-z]{4,})([A-Z])/g, '$1 $2')
+  )
 }
 
 export function guessCategory(
