@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { format, formatDistanceToNow, parseISO } from 'date-fns'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { CategoryBadge } from '../components/CategoryBadge'
+import { ColumnPicker } from '../components/ColumnPicker'
 import {
   applyFilters,
   DEFAULT_FILTERS,
@@ -29,6 +31,63 @@ import {
 } from '../components/ui/select'
 
 type EntriesSearch = { category?: string }
+
+// Toggleable columns. `select` (checkbox) and `actions` are always visible
+// and not exposed in the picker.
+type ToggleableColumn =
+  | 'date'
+  | 'type'
+  | 'category'
+  | 'account'
+  | 'note'
+  | 'amount'
+  | 'added'
+
+const COLUMN_ORDER: ToggleableColumn[] = [
+  'date',
+  'type',
+  'category',
+  'account',
+  'note',
+  'amount',
+  'added',
+]
+
+const COLUMN_LABELS: Record<ToggleableColumn, string> = {
+  date: 'Date',
+  type: 'Type',
+  category: 'Category',
+  account: 'Account',
+  note: 'Note',
+  amount: 'Amount',
+  added: 'Added',
+}
+
+const COLUMN_WIDTHS: Record<ToggleableColumn | 'select' | 'actions', string> = {
+  select: '48px',
+  date: '150px',
+  type: '160px',
+  category: '200px',
+  account: '180px',
+  note: 'minmax(0, 1fr)',
+  amount: '150px',
+  added: '140px',
+  actions: '90px',
+}
+
+type ColumnVisibility = Record<ToggleableColumn, boolean>
+
+const DEFAULT_VISIBILITY: ColumnVisibility = {
+  date: true,
+  type: true,
+  category: true,
+  account: true,
+  note: true,
+  amount: true,
+  added: true,
+}
+
+const VISIBILITY_STORAGE_KEY = 'money-tracker.entries.column-visibility'
 
 export const Route = createFileRoute('/entries')({
   component: EntriesPage,
@@ -85,6 +144,86 @@ function EntriesPage() {
     for (const e of entries) set.add(e.category)
     return [...set].sort()
   }, [entries])
+
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>(
+    () => {
+      if (typeof window === 'undefined') return DEFAULT_VISIBILITY
+      try {
+        const raw = window.localStorage.getItem(VISIBILITY_STORAGE_KEY)
+        if (!raw) return DEFAULT_VISIBILITY
+        const parsed = JSON.parse(raw) as Partial<ColumnVisibility>
+        return { ...DEFAULT_VISIBILITY, ...parsed }
+      } catch {
+        return DEFAULT_VISIBILITY
+      }
+    },
+  )
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        VISIBILITY_STORAGE_KEY,
+        JSON.stringify(columnVisibility),
+      )
+    } catch {
+      /* ignore */
+    }
+  }, [columnVisibility])
+
+  const visibleColumnIds = useMemo(
+    () => COLUMN_ORDER.filter((id) => columnVisibility[id]),
+    [columnVisibility],
+  )
+
+  // Build the grid template from currently-visible columns. select and
+  // actions are always present and bracket the toggleable columns.
+  const gridTemplateColumns = useMemo(() => {
+    const parts: string[] = [COLUMN_WIDTHS.select]
+    for (const id of visibleColumnIds) parts.push(COLUMN_WIDTHS[id])
+    parts.push(COLUMN_WIDTHS.actions)
+    return parts.join(' ')
+  }, [visibleColumnIds])
+
+  // Virtualize the entries list against the window scroll so the page keeps
+  // its natural scroll behaviour and only the visible rows mount/render.
+  // scrollMargin must be the absolute Y of the list start in the document —
+  // offsetTop is relative to the nearest positioned ancestor and can lie
+  // about that, so we use getBoundingClientRect + window.scrollY.
+  const tableRef = useRef<HTMLDivElement>(null)
+  const [scrollMargin, setScrollMargin] = useState(0)
+  useLayoutEffect(() => {
+    const el = tableRef.current
+    if (!el) return
+    const next = el.getBoundingClientRect().top + window.scrollY
+    setScrollMargin((prev) => (prev === next ? prev : next))
+  })
+
+  const virtualizer = useWindowVirtualizer({
+    count: visibleEntries.length,
+    estimateSize: () => 64,
+    overscan: 10,
+    scrollMargin,
+    getItemKey: (i) => visibleEntries[i]?.id ?? i,
+  })
+
+  const virtualItems = virtualizer.getVirtualItems()
+  const totalSize = virtualizer.getTotalSize()
+  // virtualItem.start / .end are absolute page-Y values (they already include
+  // scrollMargin), while getTotalSize() is the *list height alone* — it
+  // already subtracts scrollMargin internally. For the spacer pattern we
+  // want the container to be exactly listHeight tall, so the trailing spacer
+  // needs `+ scrollMargin` to compensate for the fact that `item.end` carries
+  // scrollMargin but `totalSize` does not.
+  const startPad =
+    virtualItems.length > 0
+      ? virtualItems[0].start - virtualizer.options.scrollMargin
+      : 0
+  const endPad =
+    virtualItems.length > 0
+      ? totalSize -
+        virtualItems[virtualItems.length - 1].end +
+        virtualizer.options.scrollMargin
+      : 0
 
   const activeBatch = useMemo(
     () =>
@@ -152,13 +291,28 @@ function EntriesPage() {
             Add, edit, and delete income, expense, and transfer entries.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-        >
-          <Plus className="h-4 w-4" /> Add entry
-        </button>
+        <div className="flex items-center gap-2">
+          <ColumnPicker
+            columns={COLUMN_ORDER.map((id) => ({
+              id,
+              label: COLUMN_LABELS[id],
+            }))}
+            visibility={columnVisibility}
+            onChange={(id, visible) =>
+              setColumnVisibility((prev) => ({
+                ...prev,
+                [id as ToggleableColumn]: visible,
+              }))
+            }
+          />
+          <button
+            type="button"
+            onClick={openCreate}
+            className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+          >
+            <Plus className="h-4 w-4" /> Add entry
+          </button>
+        </div>
       </div>
 
       <EntriesFilters
@@ -195,134 +349,181 @@ function EntriesPage() {
       )}
 
       <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm dark:divide-slate-800">
-          <thead className="bg-slate-50 dark:bg-slate-800 dark:bg-slate-800/50">
-            <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 ">
-              <Th className="w-10">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={toggleAll}
-                  aria-label="Select all"
-                  className="h-4 w-4 rounded border-slate-300"
-                />
-              </Th>
-              <Th>Date</Th>
-              <Th>Type</Th>
-              <Th>Category</Th>
-              <Th>Note</Th>
-              <Th className="text-right">Amount</Th>
-              <Th>Added</Th>
-              <Th className="text-right">Actions</Th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 dark:divide-slate-800">
-            {loading ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-slate-400 dark:text-slate-500">
-                  Loading…
-                </td>
-              </tr>
-            ) : visibleEntries.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-slate-400 dark:text-slate-500">
-                  {entries.length === 0
-                    ? 'No entries yet. Add your first one above.'
-                    : 'No entries match the current filters.'}
-                </td>
-              </tr>
-            ) : (
-              visibleEntries.map((entry) => (
-                <tr
-                  key={entry.id}
-                  className={`hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                    selected.has(entry.id)
-                      ? 'bg-sky-50 dark:bg-sky-900/30'
-                      : editing?.id === entry.id
-                        ? 'bg-amber-50 dark:bg-amber-900/30'
-                        : ''
-                  }`}
-                >
-                  <Td>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(entry.id)}
-                      onChange={() => toggleOne(entry.id)}
-                      aria-label="Select entry"
-                      className="h-4 w-4 rounded border-slate-300"
-                    />
-                  </Td>
-                  <Td className="whitespace-nowrap">
-                    {formatDate(entry.date)}
-                    {entry.time && (
-                      <span className="ml-2 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                        {entry.time}
-                      </span>
-                    )}
-                  </Td>
-                  <Td>
-                    <div className="flex items-center gap-1.5">
-                      <TypeBadge type={entry.type} />
-                      {entry.needsReview && <ReviewBadge />}
-                    </div>
-                  </Td>
-                  <Td>
-                    <Select
-                      value={entry.category}
-                      onValueChange={(v) => void update(entry.id, { category: v })}
-                    >
-                      <SelectTrigger className="h-7 w-auto gap-1 border-0 bg-transparent p-0 shadow-none ring-0 hover:bg-slate-100 dark:hover:bg-slate-800 focus:ring-2">
-                        <CategoryBadge category={entry.category} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DEFAULT_CATEGORIES[entry.type].map((c) => (
-                          <SelectItem key={c} value={c}>
-                            <CategoryBadge category={c} />
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {isTransfer(entry.type) && (
-                      <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                        {accountLabel(entry.fromAccountId)} →{' '}
-                        {accountLabel(entry.toAccountId)}
-                      </div>
-                    )}
-                  </Td>
-                  <Td
-                    className="max-w-xs text-slate-500 dark:text-slate-400"
-                    title={entry.note || undefined}
+        <div className="min-w-max">
+          {/* Header */}
+          <div
+            className="grid items-center border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400"
+            role="row"
+            style={{ gridTemplateColumns }}
+          >
+            <div className="flex justify-center px-2 py-3">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleAll}
+                aria-label="Select all"
+                className="h-4 w-4 rounded border-slate-300"
+              />
+            </div>
+            {visibleColumnIds.map((id) => (
+              <div
+                key={id}
+                className={`px-3 py-3 ${id === 'amount' ? 'text-right' : ''}`}
+              >
+                {COLUMN_LABELS[id]}
+              </div>
+            ))}
+            <div className="px-3 py-3 text-right">Actions</div>
+          </div>
+
+          {/* Body — window-virtualized */}
+          {loading ? (
+            <div className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
+              Loading…
+            </div>
+          ) : visibleEntries.length === 0 ? (
+            <div className="px-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500">
+              {entries.length === 0
+                ? 'No entries yet. Add your first one above.'
+                : 'No entries match the current filters.'}
+            </div>
+          ) : (
+            <div ref={tableRef}>
+              <div style={{ height: startPad }} />
+              {virtualItems.map((vi) => {
+                const entry = visibleEntries[vi.index]
+                if (!entry) return null
+                const rowBg = selected.has(entry.id)
+                  ? 'bg-sky-50 dark:bg-sky-900/30'
+                  : editing?.id === entry.id
+                    ? 'bg-amber-50 dark:bg-amber-900/30'
+                    : ''
+                return (
+                  <div
+                    key={entry.id}
+                    ref={virtualizer.measureElement}
+                    data-index={vi.index}
+                    role="row"
+                    className={`grid items-start border-b border-slate-100 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800 ${rowBg}`}
+                    style={{ gridTemplateColumns }}
                   >
-                    {/* line-clamp needs a block-level child to behave reliably
-                        inside <td>; the wrapper div is intentional. */}
-                    <div className="line-clamp-3 whitespace-normal break-words">
-                      {entry.note || '—'}
+                    <div className="flex items-center justify-center px-2 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(entry.id)}
+                        onChange={() => toggleOne(entry.id)}
+                        aria-label="Select entry"
+                        className="h-4 w-4 rounded border-slate-300"
+                      />
                     </div>
-                  </Td>
-                  <Td
-                    className={`text-right font-medium tabular-nums ${amountColor(entry.type)}`}
-                  >
-                    {amountSign(entry.type)}
-                    {formatCurrency(entry.amount)}
-                  </Td>
-                  <Td>
-                    <div className="flex flex-col text-xs text-slate-500 dark:text-slate-400">
-                      <span
-                        title={new Date(entry.createdAt).toLocaleString()}
-                      >
-                        {formatDistanceToNow(parseISO(entry.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </span>
-                      {entry.source === 'import' && (
-                        <span className="text-[10px] uppercase tracking-wider text-sky-600">
-                          imported
-                        </span>
-                      )}
-                    </div>
-                  </Td>
-                  <Td className="text-right">
-                    <div className="flex justify-end gap-1">
+                    {visibleColumnIds.map((id) => {
+                      switch (id) {
+                        case 'date':
+                          return (
+                            <div
+                              key={id}
+                              className="whitespace-nowrap px-3 py-3 text-sm"
+                            >
+                              {formatDate(entry.date)}
+                              {entry.time && (
+                                <span className="ml-2 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                                  {entry.time}
+                                </span>
+                              )}
+                            </div>
+                          )
+                        case 'type':
+                          return (
+                            <div key={id} className="px-3 py-3">
+                              <div className="flex items-center gap-1.5">
+                                <TypeBadge type={entry.type} />
+                                {entry.needsReview && <ReviewBadge />}
+                              </div>
+                            </div>
+                          )
+                        case 'category':
+                          return (
+                            <div key={id} className="px-3 py-3">
+                              <Select
+                                value={entry.category}
+                                onValueChange={(v) =>
+                                  void update(entry.id, { category: v })
+                                }
+                              >
+                                <SelectTrigger className="h-7 w-auto gap-1 border-0 bg-transparent p-0 shadow-none ring-0 hover:bg-slate-100 focus:ring-2 dark:hover:bg-slate-800">
+                                  <CategoryBadge category={entry.category} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {DEFAULT_CATEGORIES[entry.type].map((c) => (
+                                    <SelectItem key={c} value={c}>
+                                      <CategoryBadge category={c} />
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )
+                        case 'account': {
+                          const accountText = isTransfer(entry.type)
+                            ? `${accountLabel(entry.fromAccountId)} → ${accountLabel(entry.toAccountId)}`
+                            : accountLabel(entry.accountId)
+                          return (
+                            <div
+                              key={id}
+                              className="truncate px-3 py-3 text-sm text-slate-700 dark:text-slate-200"
+                              title={accountText}
+                            >
+                              {accountText}
+                            </div>
+                          )
+                        }
+                        case 'note':
+                          return (
+                            <div
+                              key={id}
+                              className="px-3 py-3 text-sm text-slate-500 dark:text-slate-400"
+                              title={entry.note || undefined}
+                            >
+                              <div className="line-clamp-3 whitespace-normal break-words">
+                                {entry.note || '—'}
+                              </div>
+                            </div>
+                          )
+                        case 'amount':
+                          return (
+                            <div
+                              key={id}
+                              className={`px-3 py-3 text-right text-sm font-medium tabular-nums ${amountColor(entry.type)}`}
+                            >
+                              {amountSign(entry.type)}
+                              {formatCurrency(entry.amount)}
+                            </div>
+                          )
+                        case 'added':
+                          return (
+                            <div key={id} className="px-3 py-3">
+                              <div className="flex flex-col text-xs text-slate-500 dark:text-slate-400">
+                                <span
+                                  title={new Date(
+                                    entry.createdAt,
+                                  ).toLocaleString()}
+                                >
+                                  {formatDistanceToNow(
+                                    parseISO(entry.createdAt),
+                                    { addSuffix: true },
+                                  )}
+                                </span>
+                                {entry.source === 'import' && (
+                                  <span className="text-[10px] uppercase tracking-wider text-sky-600">
+                                    imported
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                      }
+                    })}
+                    <div className="flex justify-end gap-1 px-3 py-3">
                       <button
                         onClick={() => openEdit(entry)}
                         aria-label="Edit entry"
@@ -342,12 +543,13 @@ function EntriesPage() {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                  </Td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  </div>
+                )
+              })}
+              <div style={{ height: endPad }} />
+            </div>
+          )}
+        </div>
       </div>
 
       {selected.size > 0 && (
@@ -402,32 +604,6 @@ function EntriesPage() {
         />
       </SidePanel>
     </div>
-  )
-}
-
-function Th({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return <th className={`px-4 py-3 ${className}`}>{children}</th>
-}
-
-function Td({
-  children,
-  className = '',
-  title,
-}: {
-  children: React.ReactNode
-  className?: string
-  title?: string
-}) {
-  return (
-    <td className={`px-4 py-3 ${className}`} title={title}>
-      {children}
-    </td>
   )
 }
 
