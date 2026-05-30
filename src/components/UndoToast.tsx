@@ -35,7 +35,7 @@ export function UndoToast({
         type="button"
         onClick={onClose}
         aria-label="Dismiss"
-        className="text-slate-400 hover:text-white"
+        className="text-slate-400 dark:text-slate-500 hover:text-white"
       >
         ✕
       </button>

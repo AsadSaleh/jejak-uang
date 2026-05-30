@@ -69,7 +69,7 @@ export function AccountForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:grid-cols-6"
+      className="grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 md:grid-cols-6"
     >
       <div className="md:col-span-1">
         <Label htmlFor="bank">Bank</Label>
@@ -115,7 +115,7 @@ export function AccountForm({
       </div>
 
       <div className="flex items-end md:col-span-1">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
           <input
             type="checkbox"
             checked={form.isPocket}
@@ -133,7 +133,7 @@ export function AccountForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             Cancel
           </button>
@@ -151,7 +151,7 @@ export function AccountForm({
 }
 
 const inputCls =
-  'mt-1 w-full rounded-md border-0 bg-slate-50 px-3 py-2 text-sm shadow-sm ring-1 ring-inset ring-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900'
+  'mt-1 w-full rounded-md border-0 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900'
 
 function Label({
   children,
@@ -163,7 +163,7 @@ function Label({
   return (
     <label
       htmlFor={htmlFor}
-      className="block text-xs font-medium uppercase tracking-wide text-slate-500"
+      className="block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400"
     >
       {children}
     </label>

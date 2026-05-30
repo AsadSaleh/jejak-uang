@@ -14,7 +14,7 @@ function AccountsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Accounts</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Register your own bank accounts and pockets. These let the importer
           tell an internal/external transfer apart from a regular expense.
         </p>
@@ -35,26 +35,26 @@ function AccountsPage() {
         }}
       />
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50">
-            <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+          <thead className="bg-slate-50 dark:bg-slate-800">
+            <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
               <th className="px-4 py-3">Bank</th>
               <th className="px-4 py-3">Label</th>
               <th className="px-4 py-3">Account numbers</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {loading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-400 dark:text-slate-500">
                   Loading…
                 </td>
               </tr>
             ) : accounts.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-slate-400">
+                <td colSpan={4} className="px-4 py-12 text-center text-slate-400 dark:text-slate-500">
                   No accounts yet. Add your Jago pockets and other banks above.
                 </td>
               </tr>
@@ -62,7 +62,7 @@ function AccountsPage() {
               accounts.map((acc) => (
                 <tr
                   key={acc.id}
-                  className={`hover:bg-slate-50 ${editing?.id === acc.id ? 'bg-amber-50' : ''}`}
+                  className={`hover:bg-slate-50 dark:hover:bg-slate-800 ${editing?.id === acc.id ? 'bg-amber-50' : ''}`}
                 >
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-2">
@@ -75,7 +75,7 @@ function AccountsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">{acc.label}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-500">
+                  <td className="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">
                     {acc.accountNumbers.length
                       ? acc.accountNumbers.join(', ')
                       : '—'}
@@ -85,7 +85,7 @@ function AccountsPage() {
                       <button
                         type="button"
                         onClick={() => setEditing(acc)}
-                        className="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                        className="rounded px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
                         Edit
                       </button>

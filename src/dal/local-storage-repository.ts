@@ -1,8 +1,41 @@
-import type { Entry, EntryPatch, NewEntry } from './types'
+import type { Entry, EntryPatch, EntryType, NewEntry } from './types'
 import type { EntryRepository } from './repository'
+import { guessCategory } from '../lib/category-map'
 
 const STORAGE_KEY = 'money-tracker.entries.v2'
 const LEGACY_KEY = 'money-tracker.entries.v1'
+
+// Direct translations for legacy English category labels -> Bahasa Indonesia.
+// "Food" and "Utilities" are special-cased: we re-run the keyword guesser so
+// old rows can be split into Kopi / Makan and Listrik / Pulsa / Internet / Air.
+const CATEGORY_TRANSLATIONS: Record<string, string> = {
+  Groceries: 'Belanja Harian',
+  Transport: 'Transportasi',
+  Housing: 'Tempat Tinggal',
+  Entertainment: 'Hiburan',
+  Health: 'Kesehatan',
+  Shopping: 'Belanja',
+  Education: 'Pendidikan',
+  Other: 'Lainnya',
+  Salary: 'Gaji',
+  Investment: 'Investasi',
+  Gift: 'Hadiah',
+  'Pocket Transfer': 'Antar Kantong',
+  Savings: 'Tabungan',
+  'Own Account': 'Rekening Sendiri',
+}
+
+function translateCategory(
+  category: string,
+  type: EntryType,
+  text: string,
+  amount: number,
+): string {
+  if (category === 'Food') return guessCategory(text, type, amount) ?? 'Makan'
+  if (category === 'Utilities')
+    return guessCategory(text, type, amount) ?? 'Listrik'
+  return CATEGORY_TRANSLATIONS[category] ?? category
+}
 
 function nowISO() {
   return new Date().toISOString()
@@ -15,14 +48,24 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-// Backfills fields added after v1 so older records stay valid.
+// Backfills fields added after v1 so older records stay valid, and translates
+// legacy English category labels into Bahasa Indonesia (idempotent — already-
+// translated labels pass through unchanged).
 function normalize(raw: Partial<Entry>): Entry {
+  const type: EntryType = raw.type ?? 'expense'
+  const text = `${raw.rawText ?? ''} ${raw.note ?? ''}`
   return {
     id: raw.id ?? makeId(),
     date: raw.date ?? '',
+    time: raw.time,
     amount: raw.amount ?? 0,
-    type: raw.type ?? 'expense',
-    category: raw.category ?? 'Other',
+    type,
+    category: translateCategory(
+      raw.category ?? 'Lainnya',
+      type,
+      text,
+      raw.amount ?? 0,
+    ),
     note: raw.note ?? '',
     fromAccountId: raw.fromAccountId,
     toAccountId: raw.toAccountId,
@@ -75,7 +118,13 @@ function writeAll(entries: Entry[]) {
 
 export class LocalStorageEntryRepository implements EntryRepository {
   async list(): Promise<Entry[]> {
-    return readAll().sort((a, b) => b.date.localeCompare(a.date))
+    // Sort newest first. Tiebreak entries on the same date by HH:MM (later
+    // first). Rows without a time sort to the bottom of their date group.
+    return readAll().sort((a, b) => {
+      const ka = `${a.date} ${a.time ?? '00:00'}`
+      const kb = `${b.date} ${b.time ?? '00:00'}`
+      return kb.localeCompare(ka)
+    })
   }
 
   async get(id: string): Promise<Entry | null> {

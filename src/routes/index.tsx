@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react'
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   Cell,
   Legend,
@@ -13,36 +15,55 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+} from '../components/ui/select'
 import { useEntries } from '../dal/use-entries'
 import {
+  availableMonths,
   buildDailySeries,
+  dayOfWeekExpense,
   expenseByCategory,
   filterEntriesByPeriod,
-  PERIODS,
+  monthlyAggregate,
+  PRESETS,
+  periodLabel,
+  periodToValue,
   totals,
-  type PeriodKey,
+  valueToPeriod,
+  type Period,
 } from '../lib/analytics'
 import { formatCurrency } from '../lib/format'
 
 export const Route = createFileRoute('/')({ component: Dashboard })
 
+// Mid-saturation Tailwind 500 palette — readable on both light (slate-50) and
+// dark (slate-950) backgrounds. The previous palette led with slate-900, which
+// disappeared into the card surface in dark mode.
 const PIE_COLORS = [
-  '#0f172a',
-  '#7c3aed',
-  '#0891b2',
-  '#059669',
-  '#d97706',
-  '#dc2626',
-  '#db2777',
-  '#65a30d',
-  '#2563eb',
-  '#9333ea',
+  '#6366f1', // indigo-500
+  '#06b6d4', // cyan-500
+  '#10b981', // emerald-500
+  '#f59e0b', // amber-500
+  '#ef4444', // red-500
+  '#ec4899', // pink-500
+  '#84cc16', // lime-500
+  '#3b82f6', // blue-500
+  '#a855f7', // purple-500
+  '#f97316', // orange-500
 ]
 
 function Dashboard() {
   const { entries, loading } = useEntries()
-  const [period, setPeriod] = useState<PeriodKey>('30d')
+  const [period, setPeriod] = useState<Period>({ kind: 'preset', key: '30d' })
 
+  const months = useMemo(() => availableMonths(entries), [entries])
   const filtered = useMemo(
     () => filterEntriesByPeriod(entries, period),
     [entries, period],
@@ -53,36 +74,60 @@ function Dashboard() {
     [entries, period],
   )
   const byCategory = useMemo(() => expenseByCategory(filtered), [filtered])
+  const monthly = useMemo(() => monthlyAggregate(entries), [entries])
+  const dow = useMemo(() => dayOfWeekExpense(filtered), [filtered])
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Overview of your income and expenses.
           </p>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-lg bg-white p-1 ring-1 ring-slate-200">
-          {PERIODS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setPeriod(p.key)}
-              type="button"
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                period === p.key
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+        <div className="w-full max-w-xs">
+          <Select
+            value={periodToValue(period)}
+            onValueChange={(v) => setPeriod(valueToPeriod(v))}
+          >
+            <SelectTrigger>
+              <span className="text-sm font-medium">{periodLabel(period)}</span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Range</SelectLabel>
+                {PRESETS.map((p) => (
+                  <SelectItem key={p.key} value={`p:${p.key}`}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              {months.length > 0 && (
+                <>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Month</SelectLabel>
+                    {months.map((m) => (
+                      <SelectItem key={m.value} value={`m:${m.value}`}>
+                        <span className="flex w-full items-center justify-between gap-3">
+                          <span>{m.label}</span>
+                          <span className="text-xs text-slate-400 dark:text-slate-500">
+                            {m.count}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {loading ? (
-        <div className="rounded-xl bg-white p-10 text-center text-slate-400 ring-1 ring-slate-200">
+        <div className="rounded-xl bg-white p-10 text-center text-slate-400 dark:text-slate-500 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
           Loading…
         </div>
       ) : entries.length === 0 ? (
@@ -95,8 +140,8 @@ function Dashboard() {
             <SummaryCard label="Net" value={t.net} tone="slate" signed />
           </div>
 
-          <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <h2 className="text-sm font-semibold text-slate-700">
+          <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               Cumulative income vs expense
             </h2>
             <div className="mt-4 h-72 w-full">
@@ -127,7 +172,7 @@ function Dashboard() {
                     fontSize={11}
                     stroke="#94a3b8"
                     tickLine={false}
-                    tickFormatter={(v) => formatCurrency(v).replace('.00', '')}
+                    tickFormatter={(v) => formatCurrency(Number(v)).replace('.00', '')}
                   />
                   <Tooltip
                     formatter={(v) => formatCurrency(Number(v))}
@@ -159,13 +204,59 @@ function Dashboard() {
             </div>
           </section>
 
+          {monthly.length >= 2 && (
+            <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                Monthly income vs expense
+              </h2>
+              <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                All months in your data — not affected by the period filter.
+              </p>
+              <div className="mt-4 h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={monthly}
+                    margin={{ top: 10, right: 16, left: -8, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="label"
+                      fontSize={11}
+                      stroke="#94a3b8"
+                      tickLine={false}
+                    />
+                    <YAxis
+                      fontSize={11}
+                      stroke="#94a3b8"
+                      tickLine={false}
+                      tickFormatter={(v) =>
+                        formatCurrency(Number(v)).replace('.00', '')
+                      }
+                    />
+                    <Tooltip
+                      formatter={(v) => formatCurrency(Number(v))}
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: '1px solid #e2e8f0',
+                        fontSize: 12,
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expense" name="Expense" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          )}
+
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-            <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 lg:col-span-3">
-              <h2 className="text-sm font-semibold text-slate-700">
+            <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 lg:col-span-3">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 Expense by category
               </h2>
               {byCategory.length === 0 ? (
-                <div className="flex h-64 items-center justify-center text-sm text-slate-400">
+                <div className="flex h-64 items-center justify-center text-sm text-slate-400 dark:text-slate-500">
                   No expenses in this period.
                 </div>
               ) : (
@@ -188,7 +279,13 @@ function Dashboard() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(v) => formatCurrency(Number(v))}
+                        formatter={(v, _name, item) => {
+                          const count = (item?.payload as { count?: number } | undefined)?.count
+                          const amount = formatCurrency(Number(v))
+                          return count !== undefined
+                            ? `${amount} (${count} ${count === 1 ? 'tx' : 'tx'})`
+                            : amount
+                        }}
                         contentStyle={{
                           borderRadius: 8,
                           border: '1px solid #e2e8f0',
@@ -200,6 +297,17 @@ function Dashboard() {
                         layout="vertical"
                         verticalAlign="middle"
                         align="right"
+                        // Explicit payload forces the legend to match the
+                        // sorted byCategory order (desc by total) — same as
+                        // the Top categories list. Recharts v3 hid `payload`
+                        // from the public Legend typings but it still works.
+                        // @ts-expect-error - runtime-supported, omitted from types
+                        payload={byCategory.map((row, i) => ({
+                          value: `${row.category} (${row.count})`,
+                          type: 'square',
+                          id: row.category,
+                          color: PIE_COLORS[i % PIE_COLORS.length],
+                        }))}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -207,13 +315,13 @@ function Dashboard() {
               )}
             </div>
 
-            <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 lg:col-span-2">
-              <h2 className="text-sm font-semibold text-slate-700">
+            <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 lg:col-span-2">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 Top categories
               </h2>
               <ul className="mt-4 space-y-3">
                 {byCategory.length === 0 ? (
-                  <li className="text-sm text-slate-400">
+                  <li className="text-sm text-slate-400 dark:text-slate-500">
                     No expenses in this period.
                   </li>
                 ) : (
@@ -228,15 +336,18 @@ function Dashboard() {
                                 PIE_COLORS[i % PIE_COLORS.length],
                             }}
                           />
-                          <span className="font-medium text-slate-700">
+                          <span className="font-medium text-slate-700 dark:text-slate-200">
                             {row.category}
                           </span>
+                          <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                            {row.count}
+                          </span>
                         </div>
-                        <span className="tabular-nums text-slate-900">
+                        <span className="tabular-nums text-slate-900 dark:text-slate-100">
                           {formatCurrency(row.total)}
                         </span>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -249,6 +360,49 @@ function Dashboard() {
                   ))
                 )}
               </ul>
+            </div>
+          </section>
+
+          <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Average daily expense by weekday
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+              Total expense for each weekday in this period, divided by the
+              number of times that weekday occurred.
+            </p>
+            <div className="mt-4 h-56 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={dow}
+                  margin={{ top: 10, right: 16, left: -8, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="label" fontSize={11} stroke="#94a3b8" tickLine={false} />
+                  <YAxis
+                    fontSize={11}
+                    stroke="#94a3b8"
+                    tickLine={false}
+                    tickFormatter={(v) =>
+                      formatCurrency(Number(v)).replace('.00', '')
+                    }
+                  />
+                  <Tooltip
+                    formatter={(v) => formatCurrency(Number(v))}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: '1px solid #e2e8f0',
+                      fontSize: 12,
+                    }}
+                  />
+                  <Bar
+                    dataKey="average"
+                    name="Average"
+                    fill="#6366f1"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </section>
         </>
@@ -275,8 +429,8 @@ function SummaryCard({
   }[tone]
   const sign = signed && value > 0 ? '+' : ''
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+    <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+      <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
       </div>
       <div className={`mt-2 text-2xl font-semibold tabular-nums ${toneCls}`}>
@@ -289,10 +443,10 @@ function SummaryCard({
 
 function EmptyState() {
   return (
-    <div className="rounded-xl bg-white p-12 text-center shadow-sm ring-1 ring-slate-200">
+    <div className="rounded-xl bg-white p-12 text-center dark:bg-slate-900 shadow-sm ring-1 ring-slate-200">
       <div className="text-3xl">📊</div>
       <h2 className="mt-3 text-lg font-semibold">No data to display yet</h2>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Add a few entries to start seeing your dashboard come to life.
       </p>
       <Link

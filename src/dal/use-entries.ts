@@ -21,7 +21,12 @@ export function useEntries(): UseEntriesResult {
   const [error, setError] = useState<Error | null>(null)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // Intentionally NOT toggling `loading` on subsequent refreshes — flipping
+    // it back to true would replace the entire rendered list with a single
+    // "Loading…" row, collapsing the page height. The browser then clamps
+    // scrollY to the new shorter content and we lose the user's scroll
+    // position on every mutation. `loading` stays true only until the first
+    // successful read.
     try {
       const all = await entryRepository.list()
       setEntries(all)

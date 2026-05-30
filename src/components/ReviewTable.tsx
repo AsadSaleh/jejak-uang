@@ -25,23 +25,25 @@ const TYPE_ORDER: EntryType[] = [
 ]
 
 const cellInput =
-  'w-full rounded border-0 bg-white px-2 py-1 text-sm ring-1 ring-inset ring-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900'
+  'w-full rounded border-0 bg-white px-2 py-1 text-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900'
 
 export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50">
-          <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-            <th className="px-3 py-3">Import</th>
-            <th className="px-3 py-3">Date</th>
-            <th className="px-3 py-3">Type</th>
-            <th className="px-3 py-3">Category</th>
-            <th className="px-3 py-3 min-w-[16rem]">Note / accounts</th>
-            <th className="px-3 py-3 text-right">Amount</th>
+    <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+      <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+        <thead className="bg-slate-50 dark:bg-slate-800">
+          <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <th className="w-12 px-2 py-3 text-center">
+              <span className="sr-only">Import</span>
+            </th>
+            <th className="w-32 px-3 py-3">Date</th>
+            <th className="w-40 px-3 py-3">Type</th>
+            <th className="w-44 px-3 py-3">Category</th>
+            <th className="min-w-[14rem] px-3 py-3">Note / accounts</th>
+            <th className="w-44 px-3 py-3 text-right">Amount</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {rows.map((row) => (
             <tr
               key={row.rowId}
@@ -49,24 +51,27 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
                 !row.include
                   ? 'opacity-40'
                   : row.needsReview
-                    ? 'bg-amber-50'
+                    ? 'bg-amber-50/60 dark:bg-amber-950/30'
                     : ''
               }`}
             >
-              <td className="px-3 py-2">
-                <div className="flex items-center gap-2">
+              <td className="px-2 py-2">
+                <div className="relative flex items-center justify-center">
                   <input
                     type="checkbox"
                     checked={row.include}
                     onChange={(e) =>
                       onChange(row.rowId, { include: e.target.checked })
                     }
+                    aria-label="Include this row in the import"
                     className="h-4 w-4 rounded border-slate-300"
                   />
                   {row.needsReview && (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                      review
-                    </span>
+                    <span
+                      title="Needs review"
+                      aria-label="Needs review"
+                      className="absolute -right-0.5 -top-0.5 inline-block h-2 w-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900"
+                    />
                   )}
                 </div>
               </td>
@@ -141,7 +146,7 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
                         onChange(row.rowId, { fromAccountId: v || undefined })
                       }
                     />
-                    <span className="self-center text-slate-400">→</span>
+                    <span className="self-center text-slate-400 dark:text-slate-500">→</span>
                     <AccountSelect
                       accounts={accounts}
                       value={row.toAccountId ?? ''}
@@ -205,7 +210,7 @@ function AccountSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded border-0 bg-white px-2 py-1 text-xs ring-1 ring-inset ring-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
+      className="w-full rounded border-0 bg-white px-2 py-1 text-xs ring-1 ring-inset ring-slate-300 dark:ring-slate-700 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
     >
       <option value="">{placeholder}</option>
       {accounts.map((a) => (

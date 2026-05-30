@@ -1,30 +1,67 @@
 import {
   ArrowLeftRight,
+  Banknote,
   BookOpen,
   Briefcase,
   Car,
+  Coffee,
+  Droplet,
   Film,
   Gift,
   HeartPulse,
   Home,
+  Landmark,
   MoreHorizontal,
   PiggyBank,
   Plug,
   Repeat,
   ShoppingBag,
+  ShoppingCart,
+  Smartphone,
   Tag,
   TrendingUp,
   Utensils,
   Wallet,
+  Wifi,
+  Zap,
   type LucideIcon,
 } from 'lucide-react'
 import { Badge } from './ui/badge'
 
-// Maps known category names (case-insensitive) to a lucide icon. Unknown
-// categories fall back to a generic Tag icon so the badge always renders.
+// Maps category names (case-insensitive) to a lucide icon. Includes both the
+// current Indonesian labels and legacy English labels so older rows still
+// render properly until the storage migration translates them on read.
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  // expense
+  // Indonesian — expense
+  makan: Utensils,
+  kopi: Coffee,
+  'belanja harian': ShoppingCart,
+  transportasi: Car,
+  'tempat tinggal': Home,
+  listrik: Zap,
+  pulsa: Smartphone,
+  internet: Wifi,
+  air: Droplet,
+  hiburan: Film,
+  kesehatan: HeartPulse,
+  belanja: ShoppingBag,
+  pendidikan: BookOpen,
+  'top-up': Wallet,
+  'bank admin': Landmark,
+  // Indonesian — income
+  gaji: Briefcase,
+  bonus: Banknote,
+  investasi: TrendingUp,
+  hadiah: Gift,
+  // Indonesian — transfer
+  'antar kantong': ArrowLeftRight,
+  tabungan: PiggyBank,
+  'rekening sendiri': Repeat,
+  // Indonesian — generic
+  lainnya: MoreHorizontal,
+  // Legacy English fallback
   food: Utensils,
+  groceries: ShoppingCart,
   transport: Car,
   housing: Home,
   utilities: Plug,
@@ -32,16 +69,12 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   health: HeartPulse,
   shopping: ShoppingBag,
   education: BookOpen,
-  // income
   salary: Wallet,
-  bonus: Briefcase,
   investment: TrendingUp,
   gift: Gift,
-  // transfer
   'pocket transfer': ArrowLeftRight,
   savings: PiggyBank,
   'own account': Repeat,
-  // generic
   other: MoreHorizontal,
 }
 
@@ -58,7 +91,7 @@ export function CategoryBadge({ category, className }: CategoryBadgeProps) {
   const Icon = iconFor(category)
   return (
     <Badge variant="outline" className={className}>
-      <Icon className="h-3.5 w-3.5 text-slate-500" />
+      <Icon className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
       {category}
     </Badge>
   )

@@ -18,7 +18,8 @@ export function useAccounts(): UseAccountsResult {
   const [error, setError] = useState<Error | null>(null)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // See use-entries.ts: don't flip loading on background refreshes —
+    // collapsing the rendered list to a "Loading…" row resets the scroll.
     try {
       setAccounts(await accountRepository.list())
       setError(null)

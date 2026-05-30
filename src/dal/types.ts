@@ -9,6 +9,9 @@ export type EntrySource = 'manual' | 'import'
 export interface Entry {
   id: string
   date: string
+  // Optional HH:MM of the transaction. Adapters that have it (Jago, BSI)
+  // populate it; BCAS and manual entries leave it undefined.
+  time?: string
   amount: number
   type: EntryType
   category: string
@@ -28,6 +31,7 @@ export interface Entry {
 // Provenance/review fields are optional on creation; the repository defaults them.
 export type NewEntry = {
   date: string
+  time?: string
   amount: number
   type: EntryType
   category: string
@@ -43,6 +47,19 @@ export type NewEntry = {
 }
 
 export type EntryPatch = Partial<NewEntry>
+
+export interface ImportBatch {
+  id: string
+  importedAt: string
+  bank: string // BankId, kept as string to avoid coupling DAL to import module
+  fileName: string
+  statementAccountId?: string
+  entryCount: number
+  incomeTotal: number
+  expenseTotal: number
+}
+
+export type NewImportBatch = Omit<ImportBatch, 'id'> & { id?: string }
 
 export interface Account {
   id: string
@@ -65,25 +82,32 @@ export function isTransfer(type: EntryType): boolean {
 }
 
 export const ENTRY_TYPE_LABELS: Record<EntryType, string> = {
-  income: 'Income',
-  expense: 'Expense',
-  transfer_internal: 'Internal transfer',
-  transfer_external: 'External transfer',
+  income: 'Pemasukan',
+  expense: 'Pengeluaran',
+  transfer_internal: 'Transfer internal',
+  transfer_external: 'Transfer antar bank',
 }
 
 export const DEFAULT_CATEGORIES: Record<EntryType, readonly string[]> = {
-  income: ['Salary', 'Bonus', 'Investment', 'Gift', 'Other'],
+  income: ['Gaji', 'Bonus', 'Investasi', 'Hadiah', 'Lainnya'],
   expense: [
-    'Food',
-    'Transport',
-    'Housing',
-    'Utilities',
-    'Entertainment',
-    'Health',
-    'Shopping',
-    'Education',
-    'Other',
+    'Makan',
+    'Kopi',
+    'Belanja Harian',
+    'Transportasi',
+    'Tempat Tinggal',
+    'Listrik',
+    'Pulsa',
+    'Internet',
+    'Air',
+    'Hiburan',
+    'Kesehatan',
+    'Belanja',
+    'Pendidikan',
+    'Top-up',
+    'Bank Admin',
+    'Lainnya',
   ],
-  transfer_internal: ['Pocket Transfer', 'Savings', 'Other'],
-  transfer_external: ['Own Account', 'Other'],
+  transfer_internal: ['Antar Kantong', 'Tabungan', 'Lainnya'],
+  transfer_external: ['Rekening Sendiri', 'Lainnya'],
 }
