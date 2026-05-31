@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
+import { Info } from 'lucide-react'
 import type { Account, NewAccount } from '../dal/types'
+import { BANKS, bankFor } from '../lib/banks'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from './ui/select'
+import { InfoTooltip } from './ui/tooltip'
 
 interface AccountFormProps {
   initial?: Account | null
@@ -8,7 +17,20 @@ interface AccountFormProps {
   submitLabel?: string
 }
 
-const KNOWN_BANKS = ['Jago', 'Mandiri', 'BSI', 'BCA', 'Other']
+const POCKET_HELP =
+  'A pocket is a sub-balance inside one bank (e.g. a Jago "Kantong" or a savings goal). Marking an account as a pocket lets the importer recognise pocket-to-pocket moves as internal transfers instead of counting them as spending.'
+
+function BankLogo({ name }: { name: string }) {
+  const bank = bankFor(name)
+  return (
+    <img
+      src={bank.logo}
+      alt=""
+      aria-hidden
+      className="h-5 w-5 shrink-0 rounded"
+    />
+  )
+}
 
 const blank = {
   bank: 'Jago',
@@ -34,6 +56,14 @@ export function AccountForm({
       : blank,
   )
   const [submitting, setSubmitting] = useState(false)
+
+  // Surface a legacy/custom bank value that isn't in the catalogue so editing
+  // an old account doesn't silently drop its bank from the dropdown.
+  const bankOptions = BANKS.some(
+    (b) => b.name.toLowerCase() === form.bank.trim().toLowerCase(),
+  )
+    ? BANKS
+    : [{ id: '__custom', name: form.bank, logo: bankFor(form.bank).logo }, ...BANKS]
 
   useEffect(() => {
     if (initial) {
@@ -73,18 +103,25 @@ export function AccountForm({
     >
       <div className="md:col-span-1">
         <Label htmlFor="bank">Bank</Label>
-        <select
-          id="bank"
+        <Select
           value={form.bank}
-          onChange={(e) => setForm((f) => ({ ...f, bank: e.target.value }))}
-          className={inputCls}
+          onValueChange={(v) => setForm((f) => ({ ...f, bank: v }))}
         >
-          {KNOWN_BANKS.map((b) => (
-            <option key={b} value={b}>
-              {b}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="bank" className="mt-1">
+            <span className="flex items-center gap-2 truncate">
+              <BankLogo name={form.bank} />
+              <span className="truncate">{form.bank}</span>
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {bankOptions.map((b) => (
+              <SelectItem key={b.id} value={b.name}>
+                <BankLogo name={b.name} />
+                {b.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="md:col-span-2">
@@ -114,8 +151,20 @@ export function AccountForm({
         />
       </div>
 
-      <div className="flex items-end md:col-span-1">
-        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+      <div className="md:col-span-1">
+        <div className="flex items-center gap-1">
+          <Label>Pocket</Label>
+          <InfoTooltip content={POCKET_HELP}>
+            <button
+              type="button"
+              aria-label="What is a pocket?"
+              className="text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200"
+            >
+              <Info className="h-3.5 w-3.5" />
+            </button>
+          </InfoTooltip>
+        </div>
+        <label className="mt-1 flex h-9 items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
           <input
             type="checkbox"
             checked={form.isPocket}
@@ -124,7 +173,7 @@ export function AccountForm({
             }
             className="h-4 w-4 rounded border-slate-300"
           />
-          Pocket
+          Is a pocket
         </label>
       </div>
 

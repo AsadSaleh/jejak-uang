@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -40,6 +40,7 @@ import {
   type Period,
 } from '../lib/analytics'
 import { formatCurrency } from '../lib/format'
+import { hasOnboarded } from '../lib/app-data'
 
 export const Route = createFileRoute('/')({ component: Dashboard })
 
@@ -61,7 +62,16 @@ const PIE_COLORS = [
 
 function Dashboard() {
   const { entries, loading } = useEntries()
+  const navigate = useNavigate()
   const [period, setPeriod] = useState<Period>({ kind: 'preset', key: '30d' })
+
+  // First run: a brand-new visitor with no data and who hasn't seen (or
+  // skipped) the tour gets sent straight into onboarding.
+  useEffect(() => {
+    if (!loading && entries.length === 0 && !hasOnboarded()) {
+      navigate({ to: '/onboarding' })
+    }
+  }, [loading, entries.length, navigate])
 
   const months = useMemo(() => availableMonths(entries), [entries])
   const filtered = useMemo(

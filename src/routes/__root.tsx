@@ -40,13 +40,14 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
-type NavPath = '/' | '/entries' | '/import' | '/accounts'
+type NavPath = '/' | '/entries' | '/import' | '/accounts' | '/settings'
 
 const NAV: { to: NavPath; label: string }[] = [
   { to: '/', label: 'Dashboard' },
   { to: '/entries', label: 'Entries' },
   { to: '/import', label: 'Import' },
   { to: '/accounts', label: 'Accounts' },
+  { to: '/settings', label: 'Settings' },
 ]
 
 function RootDocument({ children }: { children: React.ReactNode }) {

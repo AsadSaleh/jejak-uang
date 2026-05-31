@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { AccountForm } from '../components/AccountForm'
 import { useAccounts } from '../dal/use-accounts'
+import { bankFor } from '../lib/banks'
 import type { Account } from '../dal/types'
 
 export const Route = createFileRoute('/accounts')({ component: AccountsPage })
@@ -66,6 +67,12 @@ function AccountsPage() {
                 >
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-2">
+                      <img
+                        src={bankFor(acc.bank).logo}
+                        alt=""
+                        aria-hidden
+                        className="h-5 w-5 shrink-0 rounded"
+                      />
                       <span className="font-medium">{acc.bank}</span>
                       {acc.isPocket && (
                         <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">

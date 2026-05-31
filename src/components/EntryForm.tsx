@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { Info } from 'lucide-react'
 import { NumericFormat } from 'react-number-format'
 import type { Entry, EntryType, NewEntry } from '../dal/types'
 import { DEFAULT_CATEGORIES, isTransfer } from '../dal/types'
@@ -13,6 +14,10 @@ import {
   SelectItem,
   SelectTrigger,
 } from './ui/select'
+import { InfoTooltip } from './ui/tooltip'
+
+const NEEDS_REVIEW_HELP =
+  'Flags this entry as uncertain — something to double-check later (an unclear category, a guessed amount, an unmatched account). You can filter by "Needs review" on the Entries page to find and clean these up.'
 
 const TYPE_VALUES: EntryType[] = [
   'expense',
@@ -250,17 +255,28 @@ export function EntryForm({
         />
       </Field>
 
-      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-        <input
-          type="checkbox"
-          checked={form.needsReview}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, needsReview: e.target.checked }))
-          }
-          className="h-4 w-4 rounded border-slate-300"
-        />
-        Needs review
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+          <input
+            type="checkbox"
+            checked={form.needsReview}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, needsReview: e.target.checked }))
+            }
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          Needs review
+        </label>
+        <InfoTooltip content={NEEDS_REVIEW_HELP}>
+          <button
+            type="button"
+            aria-label="What does “Needs review” mean?"
+            className="text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            <Info className="h-3.5 w-3.5" />
+          </button>
+        </InfoTooltip>
+      </div>
 
       <div className="mt-2 flex items-center justify-end gap-2">
         {onCancel && (
