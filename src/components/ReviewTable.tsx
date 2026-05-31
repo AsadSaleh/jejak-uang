@@ -3,7 +3,7 @@ import type { Account, EntryType } from '../dal/types'
 import { DEFAULT_CATEGORIES, isTransfer } from '../dal/types'
 import type { ReviewRow } from '../import/import-types'
 import { useI18n } from '../i18n/I18nProvider'
-import { CategoryBadge } from './CategoryBadge'
+import { CategoryCombobox } from './CategoryCombobox'
 import { TypeBadge } from './TypeBadge'
 import {
   Select,
@@ -112,23 +112,12 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
               </td>
 
               <td className="px-3 py-2">
-                <Select
+                <CategoryCombobox
+                  className="h-8 px-2"
                   value={row.category}
-                  onValueChange={(v) =>
-                    onChange(row.rowId, { category: v })
-                  }
-                >
-                  <SelectTrigger className="h-8 px-2">
-                    <CategoryBadge category={row.category} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEFAULT_CATEGORIES[row.type].map((c) => (
-                      <SelectItem key={c} value={c}>
-                        <CategoryBadge category={c} />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(v) => onChange(row.rowId, { category: v })}
+                  categories={DEFAULT_CATEGORIES[row.type]}
+                />
               </td>
 
               <td className="px-3 py-2">

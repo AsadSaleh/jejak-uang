@@ -6,27 +6,30 @@ export const TooltipProvider = TooltipPrimitive.Provider
 export const Tooltip = TooltipPrimitive.Root
 export const TooltipTrigger = TooltipPrimitive.Trigger
 
-export const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 6, children, ...props }, ref) => (
-  <TooltipPrimitive.Portal>
-    <TooltipPrimitive.Content
-      ref={ref}
-      sideOffset={sideOffset}
-      className={cn(
-        'z-50 max-w-xs rounded-md bg-slate-900 px-3 py-2 text-xs leading-relaxed text-slate-50 shadow-md dark:bg-slate-700 dark:text-slate-50',
-        'data-[state=delayed-open]:animate-in data-[state=closed]:animate-out',
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <TooltipPrimitive.Arrow className="fill-slate-900 dark:fill-slate-700" />
-    </TooltipPrimitive.Content>
-  </TooltipPrimitive.Portal>
-))
-TooltipContent.displayName = TooltipPrimitive.Content.displayName
+export function TooltipContent({
+  className,
+  sideOffset = 6,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  return (
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn(
+          'z-50 max-w-xs rounded-md bg-slate-900 px-3 py-2 text-xs leading-relaxed text-slate-50 shadow-md dark:bg-slate-700 dark:text-slate-50',
+          'data-[state=delayed-open]:animate-in data-[state=closed]:animate-out',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="fill-slate-900 dark:fill-slate-700" />
+      </TooltipPrimitive.Content>
+    </TooltipPrimitive.Portal>
+  )
+}
 
 // Convenience wrapper: a self-contained tooltip that brings its own provider so
 // callers don't have to wire one up. `content` is the bubble text; `children`

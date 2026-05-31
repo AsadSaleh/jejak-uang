@@ -2,7 +2,8 @@ import { Search, X } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import type { Account, EntryType, ImportBatch } from '../dal/types'
 import { useI18n } from '../i18n/I18nProvider'
-import { categoryLabel, entryTypeLabel } from '../i18n/translations'
+import { entryTypeLabel } from '../i18n/translations'
+import { CategoryCombobox } from './CategoryCombobox'
 import {
   Select,
   SelectContent,
@@ -70,7 +71,7 @@ export function EntriesFilters({
   batches,
   categories,
 }: Props) {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const update = (patch: Partial<EntriesFiltersState>) =>
     setFilters({ ...filters, ...patch })
   const typeLabel = (v: EntryType | 'all') =>
@@ -157,28 +158,14 @@ export function EntriesFilters({
         {/* Category */}
         {categories.length > 0 && (
           <div className="w-40">
-            <Select
-              value={filters.category || 'all'}
-              onValueChange={(v) =>
-                update({ category: v === 'all' ? '' : v })
-              }
-            >
-              <SelectTrigger className="h-8">
-                <span className="truncate text-xs">
-                  {filters.category
-                    ? categoryLabel(filters.category, locale)
-                    : t('filters.anyCategory')}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('filters.anyCategory')}</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {categoryLabel(c, locale)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CategoryCombobox
+              className="h-8"
+              variant="text"
+              anyLabel={t('filters.anyCategory')}
+              value={filters.category}
+              onChange={(v) => update({ category: v })}
+              categories={categories}
+            />
           </div>
         )}
 

@@ -6,7 +6,7 @@ import type { Entry, EntryType, NewEntry } from '../dal/types'
 import { DEFAULT_CATEGORIES, isTransfer } from '../dal/types'
 import { useAccounts } from '../dal/use-accounts'
 import { todayISO } from '../lib/format'
-import { CategoryBadge } from './CategoryBadge'
+import { CategoryCombobox } from './CategoryCombobox'
 import { TypeBadge } from './TypeBadge'
 import {
   Select,
@@ -186,21 +186,13 @@ export function EntryForm({
       </div>
 
       <Field label={t('entryForm.category')} htmlFor="category">
-        <Select
+        <CategoryCombobox
+          id="category"
+          className="mt-1"
           value={form.category}
-          onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}
-        >
-          <SelectTrigger id="category" className="mt-1">
-            <CategoryBadge category={form.category} />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((c) => (
-              <SelectItem key={c} value={c}>
-                <CategoryBadge category={c} />
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={(v) => setForm((f) => ({ ...f, category: v }))}
+          categories={categories}
+        />
       </Field>
 
       {transferMode ? (
