@@ -5,6 +5,12 @@
 const TABLE_HEADER_RE =
   /(date\s*&\s*time|tanggal|transaction details|detail transaksi|source\/destination)/i
 
+// Statement-metadata lines that also carry a "tanggal"/date word but are NOT the
+// transaction-table header — e.g. BRI's "Tanggal Laporan / Statement Date" and
+// "Periode Transaksi" sit *above* the account number, so breaking on them would
+// stop the header scan before it ever reaches "No. Rekening".
+const META_DATE_RE = /laporan|statement date|periode|period/i
+
 const ACCOUNT_KEYWORDS =
   /(rekening|account|wadiah|giro|tabungan|pocket|savings|a\/?c\b|no\.?\s*rek)/i
 
@@ -22,7 +28,7 @@ export function detectStatementAccount(
 ): DetectedAccount | null {
   const header: string[] = []
   for (const raw of docText.split('\n')) {
-    if (TABLE_HEADER_RE.test(raw)) break
+    if (TABLE_HEADER_RE.test(raw) && !META_DATE_RE.test(raw)) break
     header.push(raw)
     if (header.length >= 25) break
   }

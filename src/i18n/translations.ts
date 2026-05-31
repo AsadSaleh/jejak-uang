@@ -227,7 +227,7 @@ export const en = {
   'dropzone.prompt': 'Drop a bank statement PDF here, or click to browse',
   'dropzone.privacy': 'Parsed entirely in your browser — nothing is uploaded.',
   'dropzone.supported':
-    'Currently supported PDFs: BCA, BCA Syariah, Mandiri, BSI, and Jago. Support for other banks is coming soon.',
+    'Currently supported PDFs: BCA, BCA Syariah, Mandiri, BRI, BSI, and Jago. Support for other banks is coming soon.',
   'dropzone.passwordRequired': '🔒 Password required',
   'dropzone.ready': 'Ready to parse',
   'dropzone.remove': 'Remove',
@@ -580,7 +580,7 @@ export const id: Record<TranslationKey, string> = {
   'dropzone.prompt': 'Letakkan PDF mutasi bank di sini, atau klik untuk memilih',
   'dropzone.privacy': 'Diproses sepenuhnya di browser Anda — tidak ada yang diunggah.',
   'dropzone.supported':
-    'PDF yang didukung saat ini: BCA, BCA Syariah, Mandiri, BSI, dan Jago. Untuk bank lain fiturnya akan menyusul.',
+    'PDF yang didukung saat ini: BCA, BCA Syariah, Mandiri, BRI, BSI, dan Jago. Untuk bank lain fiturnya akan menyusul.',
   'dropzone.passwordRequired': '🔒 Perlu kata sandi',
   'dropzone.ready': 'Siap diproses',
   'dropzone.remove': 'Hapus',

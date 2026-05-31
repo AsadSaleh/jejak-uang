@@ -7,6 +7,7 @@ import { extractBsi } from './bsi'
 import { extractBcas } from './bcas'
 import { extractBca } from './bca'
 import { extractMandiri } from './mandiri'
+import { extractBri } from './bri'
 
 export type { BankId }
 export {
@@ -16,6 +17,7 @@ export {
   extractBcas,
   extractBca,
   extractMandiri,
+  extractBri,
 }
 
 export interface ExtractedDoc {
@@ -36,6 +38,8 @@ export function extractTransactions(parsed: ParsedDoc): ExtractedDoc {
       return { bank, candidates: extractBca(parsed) }
     case 'mandiri':
       return { bank, candidates: extractMandiri(parsed) }
+    case 'bri':
+      return { bank, candidates: extractBri(parsed) }
     default:
       return { bank: 'generic', candidates: extractGeneric(parsed) }
   }
