@@ -2,6 +2,7 @@ import { NumericFormat } from 'react-number-format'
 import type { Account, EntryType } from '../dal/types'
 import { DEFAULT_CATEGORIES, isTransfer } from '../dal/types'
 import type { ReviewRow } from '../import/import-types'
+import { useI18n } from '../i18n/I18nProvider'
 import { CategoryBadge } from './CategoryBadge'
 import { TypeBadge } from './TypeBadge'
 import {
@@ -28,6 +29,7 @@ const cellInput =
   'w-full rounded border-0 bg-white px-2 py-1 text-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900'
 
 export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
+  const { t } = useI18n()
   return (
     <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
       <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
@@ -36,11 +38,11 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
             <th className="w-12 px-2 py-3 text-center">
               <span className="sr-only">Import</span>
             </th>
-            <th className="w-32 px-3 py-3">Date</th>
-            <th className="w-40 px-3 py-3">Type</th>
-            <th className="w-44 px-3 py-3">Category</th>
-            <th className="min-w-[14rem] px-3 py-3">Note / accounts</th>
-            <th className="w-44 px-3 py-3 text-right">Amount</th>
+            <th className="w-32 px-3 py-3">{t('review.colDate')}</th>
+            <th className="w-40 px-3 py-3">{t('review.colType')}</th>
+            <th className="w-44 px-3 py-3">{t('review.colCategory')}</th>
+            <th className="min-w-[14rem] px-3 py-3">{t('review.colNote')}</th>
+            <th className="w-44 px-3 py-3 text-right">{t('review.colAmount')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -63,13 +65,13 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
                     onChange={(e) =>
                       onChange(row.rowId, { include: e.target.checked })
                     }
-                    aria-label="Include this row in the import"
+                    aria-label={t('review.includeAria')}
                     className="h-4 w-4 rounded border-slate-300"
                   />
                   {row.needsReview && (
                     <span
-                      title="Needs review"
-                      aria-label="Needs review"
+                      title={t('review.needsReview')}
+                      aria-label={t('review.needsReview')}
                       className="absolute -right-0.5 -top-0.5 inline-block h-2 w-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900"
                     />
                   )}
@@ -141,7 +143,7 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
                     <AccountSelect
                       accounts={accounts}
                       value={row.fromAccountId ?? ''}
-                      placeholder="From…"
+                      placeholder={t('review.from')}
                       onChange={(v) =>
                         onChange(row.rowId, { fromAccountId: v || undefined })
                       }
@@ -150,7 +152,7 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
                     <AccountSelect
                       accounts={accounts}
                       value={row.toAccountId ?? ''}
-                      placeholder="To…"
+                      placeholder={t('review.to')}
                       onChange={(v) =>
                         onChange(row.rowId, { toAccountId: v || undefined })
                       }
@@ -162,7 +164,7 @@ export function ReviewTable({ rows, accounts, onChange }: ReviewTableProps) {
                       <AccountSelect
                         accounts={accounts}
                         value={row.accountId ?? ''}
-                        placeholder="Account (optional)…"
+                        placeholder={t('review.accountOptional')}
                         onChange={(v) =>
                           onChange(row.rowId, { accountId: v || undefined })
                         }

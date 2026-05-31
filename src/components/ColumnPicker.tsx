@@ -1,5 +1,6 @@
 import { Columns3 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useI18n } from '../i18n/I18nProvider'
 
 export interface ColumnPickerOption {
   id: string
@@ -15,6 +16,7 @@ interface ColumnPickerProps {
 // Small popover with a checkbox per toggleable column. Click outside or
 // press Esc to dismiss. Built without Radix to avoid an extra dependency.
 export function ColumnPicker({ columns, visibility, onChange }: ColumnPickerProps) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -45,7 +47,7 @@ export function ColumnPicker({ columns, visibility, onChange }: ColumnPickerProp
         aria-expanded={open}
         className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-200 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
       >
-        <Columns3 className="h-4 w-4" /> Columns
+        <Columns3 className="h-4 w-4" /> {t('columns.button')}
       </button>
       {open && (
         <div

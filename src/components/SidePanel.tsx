@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
+import { useI18n } from '../i18n/I18nProvider'
 
 interface SidePanelProps {
   open: boolean
@@ -11,6 +12,7 @@ interface SidePanelProps {
 // Lightweight right-side sheet: backdrop click + Esc to close, scroll-lock on
 // the body while open. Intentionally avoids adding a Radix Dialog dependency.
 export function SidePanel({ open, onClose, title, children }: SidePanelProps) {
+  const { t } = useI18n()
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -67,7 +69,7 @@ export function SidePanel({ open, onClose, title, children }: SidePanelProps) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('common.close')}
             className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X className="h-5 w-5" />

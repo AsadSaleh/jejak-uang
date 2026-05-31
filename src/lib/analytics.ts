@@ -6,6 +6,7 @@ import {
   startOfDay,
   startOfMonth,
 } from 'date-fns'
+import type { Locale as DateFnsLocale } from 'date-fns'
 import type { Entry } from '../dal/types'
 
 export type PresetKey = '7d' | '30d' | '90d' | 'ytd' | 'all'
@@ -125,6 +126,7 @@ export function buildDailySeries(
   entries: Entry[],
   period: Period,
   today = new Date(),
+  dfLocale?: DateFnsLocale,
 ): DailyPoint[] {
   let from: Date
   let to: Date
@@ -160,7 +162,7 @@ export function buildDailySeries(
     cumOut += day.expense
     return {
       date: key,
-      label: format(d, showShort ? 'MMM d' : 'MMM d'),
+      label: format(d, showShort ? 'MMM d' : 'MMM d', { locale: dfLocale }),
       income: day.income,
       expense: day.expense,
       cumulativeIncome: round2(cumIn),
@@ -210,7 +212,10 @@ export interface MonthlyPoint {
 
 // Per-month income vs expense. Always derives months from the entries
 // themselves (not the period filter), so the chart shows a stable history.
-export function monthlyAggregate(entries: Entry[]): MonthlyPoint[] {
+export function monthlyAggregate(
+  entries: Entry[],
+  dfLocale?: DateFnsLocale,
+): MonthlyPoint[] {
   const map = new Map<string, { income: number; expense: number }>()
   for (const e of entries) {
     if (e.type !== 'income' && e.type !== 'expense') continue
@@ -224,7 +229,7 @@ export function monthlyAggregate(entries: Entry[]): MonthlyPoint[] {
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([ym, v]) => ({
       ym,
-      label: format(parseISO(`${ym}-01`), 'MMM yyyy'),
+      label: format(parseISO(`${ym}-01`), 'MMM yyyy', { locale: dfLocale }),
       income: round2(v.income),
       expense: round2(v.expense),
       net: round2(v.income - v.expense),
@@ -242,8 +247,18 @@ export interface DayOfWeekPoint {
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 // Average expense per day-of-week occurrence over the filtered range.
-export function dayOfWeekExpense(entries: Entry[]): DayOfWeekPoint[] {
-  const buckets: DayOfWeekPoint[] = DOW_LABELS.map((label, dow) => ({
+export function dayOfWeekExpense(
+  entries: Entry[],
+  dfLocale?: DateFnsLocale,
+): DayOfWeekPoint[] {
+  // 2024-01-01 is a Monday, so formatting it + the next six days yields the
+  // Mon→Sun labels in the active locale (falls back to English when undefined).
+  const labels = dfLocale
+    ? Array.from({ length: 7 }, (_, i) =>
+        format(new Date(2024, 0, 1 + i), 'EEE', { locale: dfLocale }),
+      )
+    : DOW_LABELS
+  const buckets: DayOfWeekPoint[] = labels.map((label, dow) => ({
     dow,
     label,
     total: 0,
@@ -276,7 +291,10 @@ export interface MonthOption {
 }
 
 // Months present in the data, newest first, with counts.
-export function availableMonths(entries: Entry[]): MonthOption[] {
+export function availableMonths(
+  entries: Entry[],
+  dfLocale?: DateFnsLocale,
+): MonthOption[] {
   const counts = new Map<string, number>()
   for (const e of entries) {
     const ym = e.date.slice(0, 7)
@@ -290,7 +308,7 @@ export function availableMonths(entries: Entry[]): MonthOption[] {
         year: y,
         month: m,
         value: ym,
-        label: format(new Date(y, m - 1, 1), 'MMM yyyy'),
+        label: format(new Date(y, m - 1, 1), 'MMM yyyy', { locale: dfLocale }),
         count,
       }
     })

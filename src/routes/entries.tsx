@@ -23,12 +23,24 @@ import { useEntries } from '../dal/use-entries'
 import type { Entry, EntryType } from '../dal/types'
 import { DEFAULT_CATEGORIES, isTransfer } from '../dal/types'
 import { formatCurrency, formatDate } from '../lib/format'
+import { useI18n } from '../i18n/I18nProvider'
+import type { TranslationKey } from '../i18n/translations'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
 } from '../components/ui/select'
+
+const COLUMN_LABEL_KEYS: Record<ToggleableColumn, TranslationKey> = {
+  date: 'entries.colDate',
+  type: 'entries.colType',
+  category: 'entries.colCategory',
+  account: 'entries.colAccount',
+  note: 'entries.colNote',
+  amount: 'entries.colAmount',
+  added: 'entries.colAdded',
+}
 
 type EntriesSearch = { category?: string }
 
@@ -52,16 +64,6 @@ const COLUMN_ORDER: ToggleableColumn[] = [
   'amount',
   'added',
 ]
-
-const COLUMN_LABELS: Record<ToggleableColumn, string> = {
-  date: 'Date',
-  type: 'Type',
-  category: 'Category',
-  account: 'Account',
-  note: 'Note',
-  amount: 'Amount',
-  added: 'Added',
-}
 
 const COLUMN_WIDTHS: Record<ToggleableColumn | 'select' | 'actions', string> = {
   select: '48px',
@@ -106,6 +108,10 @@ function EntriesPage() {
   const { accounts } = useAccounts()
   const { batches, remove: removeBatch } = useBatches()
   const { addToast } = useToast()
+  const { t, locale, dfLocale } = useI18n()
+  const colLabel = (id: ToggleableColumn) => t(COLUMN_LABEL_KEYS[id])
+  const entriesWord = (n: number) =>
+    n === 1 ? t('common.entry') : t('common.entries')
   const { category: categoryFromUrl } = Route.useSearch()
   const [editing, setEditing] = useState<Entry | null>(null)
   const [formOpen, setFormOpen] = useState(false)
@@ -132,8 +138,9 @@ function EntriesPage() {
 
   const accountLabel = useMemo(() => {
     const map = new Map(accounts.map((a) => [a.id, `${a.bank} — ${a.label}`]))
-    return (id?: string) => (id ? (map.get(id) ?? 'Unknown account') : '—')
-  }, [accounts])
+    return (id?: string) =>
+      id ? (map.get(id) ?? t('entries.unknownAccount')) : '—'
+  }, [accounts, t])
 
   const visibleEntries = useMemo(
     () => applyFilters(entries, filters) as Entry[],
@@ -263,7 +270,7 @@ function EntriesPage() {
     })
     await removeMany([...ids])
     addToast({
-      message: `Deleted ${toDelete.length} ${toDelete.length === 1 ? 'entry' : 'entries'}`,
+      message: `${t('entries.deletedToast', { count: toDelete.length })} ${entriesWord(toDelete.length)}`,
       onUndo: () => restore(toDelete),
     })
   }
@@ -283,22 +290,27 @@ function EntriesPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">Entries</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t('entries.title')}
+            </h1>
             <span className="text-sm font-medium text-slate-500 tabular-nums dark:text-slate-400">
               {visibleEntries.length === entries.length
-                ? `${entries.length} total`
-                : `${visibleEntries.length} of ${entries.length}`}
+                ? t('entries.countTotal', { count: entries.length })
+                : t('entries.countOf', {
+                    shown: visibleEntries.length,
+                    total: entries.length,
+                  })}
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Add, edit, and delete income, expense, and transfer entries.
+            {t('entries.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <ColumnPicker
             columns={COLUMN_ORDER.map((id) => ({
               id,
-              label: COLUMN_LABELS[id],
+              label: colLabel(id),
             }))}
             visibility={columnVisibility}
             onChange={(id, visible) =>
@@ -313,7 +325,7 @@ function EntriesPage() {
             onClick={openCreate}
             className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
           >
-            <Plus className="h-4 w-4" /> Add entry
+            <Plus className="h-4 w-4" /> {t('entries.add')}
           </button>
         </div>
       </div>
@@ -334,11 +346,14 @@ function EntriesPage() {
             </span>{' '}
             · <span className="truncate font-mono">{activeBatch.fileName}</span>
             <div className="text-xs opacity-80">
-              Imported {format(parseISO(activeBatch.importedAt), 'd MMM yyyy HH:mm')}{' '}
-              · {activeBatch.entryCount}{' '}
-              {activeBatch.entryCount === 1 ? 'entry' : 'entries'} · income{' '}
-              {formatCurrency(activeBatch.incomeTotal)} · expense{' '}
-              {formatCurrency(activeBatch.expenseTotal)}
+              {t('entries.batchImported', {
+                when: format(parseISO(activeBatch.importedAt), 'd MMM yyyy HH:mm', {
+                  locale: dfLocale,
+                }),
+              })}{' '}
+              · {activeBatch.entryCount} {entriesWord(activeBatch.entryCount)} ·{' '}
+              {t('entries.batchIncome')} {formatCurrency(activeBatch.incomeTotal)} ·{' '}
+              {t('entries.batchExpense')} {formatCurrency(activeBatch.expenseTotal)}
             </div>
           </div>
           <button
@@ -346,7 +361,7 @@ function EntriesPage() {
             onClick={() => void deleteBatch()}
             className="inline-flex items-center gap-1.5 rounded-md bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-500"
           >
-            <Trash2 className="h-3.5 w-3.5" /> Delete batch
+            <Trash2 className="h-3.5 w-3.5" /> {t('entries.deleteBatch')}
           </button>
         </div>
       )}
@@ -364,7 +379,7 @@ function EntriesPage() {
                 type="checkbox"
                 checked={allSelected}
                 onChange={toggleAll}
-                aria-label="Select all"
+                aria-label={t('entries.selectAll')}
                 className="h-4 w-4 rounded border-slate-300"
               />
             </div>
@@ -373,22 +388,22 @@ function EntriesPage() {
                 key={id}
                 className={`px-3 py-3 ${id === 'amount' ? 'text-right' : ''}`}
               >
-                {COLUMN_LABELS[id]}
+                {colLabel(id)}
               </div>
             ))}
-            <div className="px-3 py-3 text-right">Actions</div>
+            <div className="px-3 py-3 text-right">{t('entries.colActions')}</div>
           </div>
 
           {/* Body — window-virtualized */}
           {loading ? (
             <div className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
-              Loading…
+              {t('common.loading')}
             </div>
           ) : visibleEntries.length === 0 ? (
             <div className="px-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500">
               {entries.length === 0
-                ? 'No entries yet. Add your first one above.'
-                : 'No entries match the current filters.'}
+                ? t('entries.emptyNone')
+                : t('entries.emptyFiltered')}
             </div>
           ) : (
             <div ref={tableRef}>
@@ -415,7 +430,7 @@ function EntriesPage() {
                         type="checkbox"
                         checked={selected.has(entry.id)}
                         onChange={() => toggleOne(entry.id)}
-                        aria-label="Select entry"
+                        aria-label={t('entries.selectEntry')}
                         className="h-4 w-4 rounded border-slate-300"
                       />
                     </div>
@@ -427,7 +442,7 @@ function EntriesPage() {
                               key={id}
                               className="whitespace-nowrap px-3 py-3 text-sm"
                             >
-                              {formatDate(entry.date)}
+                              {formatDate(entry.date, locale)}
                               {entry.time && (
                                 <span className="ml-2 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                                   {entry.time}
@@ -513,12 +528,12 @@ function EntriesPage() {
                                 >
                                   {formatDistanceToNow(
                                     parseISO(entry.createdAt),
-                                    { addSuffix: true },
+                                    { addSuffix: true, locale: dfLocale },
                                   )}
                                 </span>
                                 {entry.source === 'import' && (
                                   <span className="text-[10px] uppercase tracking-wider text-sky-600">
-                                    imported
+                                    {t('entries.imported')}
                                   </span>
                                 )}
                               </div>
@@ -529,8 +544,8 @@ function EntriesPage() {
                     <div className="flex justify-end gap-1 px-3 py-3">
                       <button
                         onClick={() => openEdit(entry)}
-                        aria-label="Edit entry"
-                        title="Edit"
+                        aria-label={t('entries.editAria')}
+                        title={t('entries.editAria')}
                         className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                         type="button"
                       >
@@ -538,8 +553,8 @@ function EntriesPage() {
                       </button>
                       <button
                         onClick={() => deleteEntries([entry])}
-                        aria-label="Delete entry"
-                        title="Delete"
+                        aria-label={t('entries.deleteAria')}
+                        title={t('entries.deleteAria')}
                         className="rounded p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                         type="button"
                       >
@@ -559,8 +574,7 @@ function EntriesPage() {
         <div className="fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
           <div className="flex items-center gap-4 rounded-full bg-slate-900 px-5 py-3 text-sm text-white shadow-xl ring-1 ring-black/5">
             <span className="font-medium">
-              {selected.size} {selected.size === 1 ? 'entry' : 'entries'}{' '}
-              selected
+              {t('entries.selected', { count: selected.size })}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -568,7 +582,7 @@ function EntriesPage() {
                 onClick={() => setSelected(new Set())}
                 className="rounded-full px-3 py-1.5 font-medium text-slate-300 hover:text-white"
               >
-                Clear
+                {t('common.clear')}
               </button>
               <button
                 type="button"
@@ -577,7 +591,7 @@ function EntriesPage() {
                 }
                 className="rounded-full bg-rose-600 px-4 py-1.5 font-medium text-white hover:bg-rose-500"
               >
-                Delete selected
+                {t('entries.deleteSelected')}
               </button>
             </div>
           </div>
@@ -587,20 +601,20 @@ function EntriesPage() {
       <SidePanel
         open={formOpen}
         onClose={closeForm}
-        title={editing ? 'Edit entry' : 'Add entry'}
+        title={editing ? t('entries.edit') : t('entries.add')}
       >
         <EntryForm
           key={editing?.id ?? 'new'}
           initial={editing}
-          submitLabel={editing ? 'Update entry' : 'Add entry'}
+          submitLabel={editing ? t('entries.update') : t('entries.add')}
           onCancel={closeForm}
           onSubmit={async (input) => {
             if (editing) {
               await update(editing.id, input)
-              toast.success('Entry updated')
+              toast.success(t('entries.updatedToast'))
             } else {
               await create(input)
-              toast.success('Entry created')
+              toast.success(t('entries.createdToast'))
             }
             closeForm()
           }}
@@ -611,7 +625,8 @@ function EntriesPage() {
 }
 
 function ReviewBadge() {
-  return <Badge variant="warning">review</Badge>
+  const { t } = useI18n()
+  return <Badge variant="warning">{t('entries.reviewBadge')}</Badge>
 }
 
 function amountColor(type: EntryType): string {

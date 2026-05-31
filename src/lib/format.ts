@@ -7,9 +7,9 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-export function formatDate(iso: string): string {
+export function formatDate(iso: string, locale: 'en' | 'id' = 'en'): string {
   const d = new Date(iso)
-  return d.toLocaleDateString('en-ID', {
+  return d.toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-ID', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

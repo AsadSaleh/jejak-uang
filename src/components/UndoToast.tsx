@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useI18n } from '../i18n/I18nProvider'
 
 interface UndoToastProps {
   message: string
@@ -15,6 +16,7 @@ export function UndoToast({
   onClose,
   duration = 6000,
 }: UndoToastProps) {
+  const { t } = useI18n()
   useEffect(() => {
     const timer = setTimeout(onClose, duration)
     return () => clearTimeout(timer)
@@ -29,12 +31,12 @@ export function UndoToast({
         onClick={onUndo}
         className="font-semibold text-sky-300 hover:text-sky-200"
       >
-        Undo
+        {t('common.undo')}
       </button>
       <button
         type="button"
         onClick={onClose}
-        aria-label="Dismiss"
+        aria-label={t('common.dismiss')}
         className="text-slate-400 dark:text-slate-500 hover:text-white"
       >
         ✕

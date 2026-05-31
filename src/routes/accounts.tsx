@@ -3,28 +3,29 @@ import { useState } from 'react'
 import { AccountForm } from '../components/AccountForm'
 import { useAccounts } from '../dal/use-accounts'
 import { bankFor } from '../lib/banks'
+import { useI18n } from '../i18n/I18nProvider'
 import type { Account } from '../dal/types'
 
 export const Route = createFileRoute('/accounts')({ component: AccountsPage })
 
 function AccountsPage() {
   const { accounts, loading, create, update, remove } = useAccounts()
+  const { t } = useI18n()
   const [editing, setEditing] = useState<Account | null>(null)
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Accounts</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('accounts.title')}</h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Register your own bank accounts and pockets. These let the importer
-          tell an internal/external transfer apart from a regular expense.
+          {t('accounts.subtitle')}
         </p>
       </div>
 
       <AccountForm
         key={editing?.id ?? 'new'}
         initial={editing}
-        submitLabel={editing ? 'Update account' : 'Add account'}
+        submitLabel={editing ? t('accounts.update') : t('accounts.add')}
         onCancel={editing ? () => setEditing(null) : undefined}
         onSubmit={async (input) => {
           if (editing) {
@@ -40,23 +41,23 @@ function AccountsPage() {
         <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
           <thead className="bg-slate-50 dark:bg-slate-800">
             <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <th className="px-4 py-3">Bank</th>
-              <th className="px-4 py-3">Label</th>
-              <th className="px-4 py-3">Account numbers</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-3">{t('accounts.colBank')}</th>
+              <th className="px-4 py-3">{t('accounts.colLabel')}</th>
+              <th className="px-4 py-3">{t('accounts.colNumbers')}</th>
+              <th className="px-4 py-3 text-right">{t('accounts.colActions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {loading ? (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-slate-400 dark:text-slate-500">
-                  Loading…
+                  {t('common.loading')}
                 </td>
               </tr>
             ) : accounts.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-12 text-center text-slate-400 dark:text-slate-500">
-                  No accounts yet. Add your Jago pockets and other banks above.
+                  {t('accounts.empty')}
                 </td>
               </tr>
             ) : (
@@ -76,7 +77,7 @@ function AccountsPage() {
                       <span className="font-medium">{acc.bank}</span>
                       {acc.isPocket && (
                         <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
-                          pocket
+                          {t('accounts.pocketBadge')}
                         </span>
                       )}
                     </span>
@@ -94,19 +95,19 @@ function AccountsPage() {
                         onClick={() => setEditing(acc)}
                         className="rounded px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
-                        Edit
+                        {t('accounts.edit')}
                       </button>
                       <button
                         type="button"
                         onClick={async () => {
-                          if (confirm('Delete this account?')) {
+                          if (confirm(t('accounts.confirmDelete'))) {
                             if (editing?.id === acc.id) setEditing(null)
                             await remove(acc.id)
                           }
                         }}
                         className="rounded px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
                       >
-                        Delete
+                        {t('accounts.delete')}
                       </button>
                     </div>
                   </td>

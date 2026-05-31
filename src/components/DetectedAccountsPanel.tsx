@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Check, UserRound } from 'lucide-react'
 import type { Account } from '../dal/types'
 import { findAccountByNumber } from '../import/account-match'
+import { useI18n } from '../i18n/I18nProvider'
 import type { DetectedCounterparty, ReviewRow } from '../import/import-types'
 import { Badge } from './ui/badge'
 
@@ -43,6 +44,7 @@ function aggregate(rows: ReviewRow[], accounts: Account[]): AggregatedCp[] {
 }
 
 export function DetectedAccountsPanel({ rows, accounts, onRegister }: Props) {
+  const { t } = useI18n()
   const items = useMemo(() => aggregate(rows, accounts), [rows, accounts])
   if (items.length === 0) return null
 
@@ -50,11 +52,11 @@ export function DetectedAccountsPanel({ rows, accounts, onRegister }: Props) {
     <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
       <header className="mb-3 flex items-baseline justify-between">
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-          Detected counterparties ({items.length})
+          {t('detected.title', { count: items.length })}
         </h2>
         <p className="text-xs text-slate-400 dark:text-slate-500">
-          Register one as your own account to flip matching rows to{' '}
-          <span className="font-medium">External transfer</span>.
+          {t('detected.subtitle')}{' '}
+          <span className="font-medium">{t('detected.externalTransfer')}</span>.
         </p>
       </header>
       <ul className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -73,7 +75,7 @@ export function DetectedAccountsPanel({ rows, accounts, onRegister }: Props) {
                     </Badge>
                   )}
                   <span className="truncate text-sm font-medium text-slate-800">
-                    {item.name ?? '(unnamed)'}
+                    {item.name ?? t('detected.unnamed')}
                   </span>
                 </div>
                 <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -81,13 +83,12 @@ export function DetectedAccountsPanel({ rows, accounts, onRegister }: Props) {
                     <span className="font-mono">{item.accountNumber}</span>
                   ) : (
                     <span className="italic text-slate-400 dark:text-slate-500">
-                      no account number
+                      {t('detected.noAccountNumber')}
                     </span>
                   )}
                   <span>·</span>
                   <span>
-                    {item.count}{' '}
-                    {item.count === 1 ? 'transaction' : 'transactions'}
+                    {item.count === 1 ? t('detected.transactionsOne', { count: item.count }) : t('detected.transactionsMany', { count: item.count })}
                   </span>
                 </div>
               </div>
@@ -105,12 +106,12 @@ export function DetectedAccountsPanel({ rows, accounts, onRegister }: Props) {
                   disabled={!item.accountNumber}
                   title={
                     item.accountNumber
-                      ? 'Register as your own account'
-                      : 'No account number detected — register manually if needed'
+                      ? t('detected.registerTitle')
+                      : t('detected.registerTitleDisabled')
                   }
                   className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:text-slate-500"
                 >
-                  Register as own
+                  {t('detected.registerAsOwn')}
                 </button>
               )}
             </div>

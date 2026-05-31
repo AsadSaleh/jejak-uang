@@ -1,7 +1,8 @@
 import { Search, X } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import type { Account, EntryType, ImportBatch } from '../dal/types'
-import { ENTRY_TYPE_LABELS } from '../dal/types'
+import { useI18n } from '../i18n/I18nProvider'
+import { categoryLabel, entryTypeLabel } from '../i18n/translations'
 import {
   Select,
   SelectContent,
@@ -49,12 +50,12 @@ interface Props {
   categories: string[]
 }
 
-const TYPE_OPTIONS: { value: EntryType | 'all'; label: string }[] = [
-  { value: 'all', label: 'All types' },
-  { value: 'income', label: ENTRY_TYPE_LABELS.income },
-  { value: 'expense', label: ENTRY_TYPE_LABELS.expense },
-  { value: 'transfer_internal', label: ENTRY_TYPE_LABELS.transfer_internal },
-  { value: 'transfer_external', label: ENTRY_TYPE_LABELS.transfer_external },
+const TYPE_VALUES: (EntryType | 'all')[] = [
+  'all',
+  'income',
+  'expense',
+  'transfer_internal',
+  'transfer_external',
 ]
 
 function batchLabel(b: ImportBatch): string {
@@ -69,8 +70,11 @@ export function EntriesFilters({
   batches,
   categories,
 }: Props) {
+  const { t, locale } = useI18n()
   const update = (patch: Partial<EntriesFiltersState>) =>
     setFilters({ ...filters, ...patch })
+  const typeLabel = (v: EntryType | 'all') =>
+    v === 'all' ? t('filters.allTypes') : entryTypeLabel(v, t)
 
   return (
     <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
@@ -84,14 +88,12 @@ export function EntriesFilters({
             }
           >
             <SelectTrigger className="h-8">
-              <span className="text-xs">
-                {TYPE_OPTIONS.find((o) => o.value === filters.type)?.label}
-              </span>
+              <span className="text-xs">{typeLabel(filters.type)}</span>
             </SelectTrigger>
             <SelectContent>
-              {TYPE_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
+              {TYPE_VALUES.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {typeLabel(v)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -109,16 +111,16 @@ export function EntriesFilters({
             <SelectTrigger className="h-8">
               <span className="text-xs">
                 {filters.source === 'all'
-                  ? 'Any source'
+                  ? t('filters.anySource')
                   : filters.source === 'manual'
-                    ? 'Manual'
-                    : 'Imported'}
+                    ? t('filters.manual')
+                    : t('filters.imported')}
               </span>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Any source</SelectItem>
-              <SelectItem value="manual">Manual</SelectItem>
-              <SelectItem value="import">Imported</SelectItem>
+              <SelectItem value="all">{t('filters.anySource')}</SelectItem>
+              <SelectItem value="manual">{t('filters.manual')}</SelectItem>
+              <SelectItem value="import">{t('filters.imported')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -136,12 +138,12 @@ export function EntriesFilters({
                 <span className="truncate text-xs">
                   {filters.accountId
                     ? (accounts.find((a) => a.id === filters.accountId)
-                        ?.label ?? 'Account')
-                    : 'Any account'}
+                        ?.label ?? t('filters.account'))
+                    : t('filters.anyAccount')}
                 </span>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any account</SelectItem>
+                <SelectItem value="all">{t('filters.anyAccount')}</SelectItem>
                 {accounts.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.bank} — {a.label}
@@ -163,14 +165,16 @@ export function EntriesFilters({
             >
               <SelectTrigger className="h-8">
                 <span className="truncate text-xs">
-                  {filters.category || 'Any category'}
+                  {filters.category
+                    ? categoryLabel(filters.category, locale)
+                    : t('filters.anyCategory')}
                 </span>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any category</SelectItem>
+                <SelectItem value="all">{t('filters.anyCategory')}</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c} value={c}>
-                    {c}
+                    {categoryLabel(c, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -189,16 +193,16 @@ export function EntriesFilters({
             <SelectTrigger className="h-8">
               <span className="text-xs">
                 {filters.needsReview === 'all'
-                  ? 'Any status'
+                  ? t('filters.anyStatus')
                   : filters.needsReview === 'yes'
-                    ? 'Needs review'
-                    : 'Reviewed'}
+                    ? t('filters.needsReview')
+                    : t('filters.reviewed')}
               </span>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Any status</SelectItem>
-              <SelectItem value="yes">Needs review</SelectItem>
-              <SelectItem value="no">Reviewed</SelectItem>
+              <SelectItem value="all">{t('filters.anyStatus')}</SelectItem>
+              <SelectItem value="yes">{t('filters.needsReview')}</SelectItem>
+              <SelectItem value="no">{t('filters.reviewed')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -219,12 +223,12 @@ export function EntriesFilters({
                         ? batchLabel(
                             batches.find((b) => b.id === filters.batchId)!,
                           )
-                        : 'Batch')
-                    : 'Any import batch'}
+                        : t('filters.batch'))
+                    : t('filters.anyBatch')}
                 </span>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any import batch</SelectItem>
+                <SelectItem value="all">{t('filters.anyBatch')}</SelectItem>
                 {batches.map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     <span className="flex w-full items-center justify-between gap-3">
@@ -247,7 +251,7 @@ export function EntriesFilters({
             type="text"
             value={filters.search}
             onChange={(e) => update({ search: e.target.value })}
-            placeholder="Search note, raw text, category…"
+            placeholder={t('filters.search')}
             className="h-8 w-full rounded-md border-0 bg-slate-50 dark:bg-slate-800 pl-8 pr-3 text-xs shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-200"
           />
         </div>
@@ -259,7 +263,7 @@ export function EntriesFilters({
             onClick={() => setFilters(DEFAULT_FILTERS)}
             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            <X className="h-3 w-3" /> Clear
+            <X className="h-3 w-3" /> {t('common.clear')}
           </button>
         )}
       </div>

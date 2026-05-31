@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useI18n } from '../i18n/I18nProvider'
 
 interface ImportDropzoneProps {
   onParse: (
@@ -25,6 +26,7 @@ export function ImportDropzone({
   needsPassword,
   onFileChange,
 }: ImportDropzoneProps) {
+  const { t } = useI18n()
   const [fileName, setFileName] = useState<string | null>(null)
   const [bytes, setBytes] = useState<Uint8Array | null>(null)
   const [password, setPassword] = useState('')
@@ -83,10 +85,10 @@ export function ImportDropzone({
       >
         <div className="text-3xl">📄</div>
         <p className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-200">
-          {fileName ?? 'Drop a bank statement PDF here, or click to browse'}
+          {fileName ?? t('dropzone.prompt')}
         </p>
         <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-          Parsed entirely in your browser — nothing is uploaded.
+          {t('dropzone.privacy')}
         </p>
         <input
           ref={inputRef}
@@ -108,7 +110,7 @@ export function ImportDropzone({
                 {fileName}
               </p>
               <p className="text-xs text-slate-400 dark:text-slate-500">
-                {needsPassword ? '🔒 Password required' : 'Ready to parse'}
+                {needsPassword ? t('dropzone.passwordRequired') : t('dropzone.ready')}
               </p>
             </div>
             <button
@@ -117,7 +119,7 @@ export function ImportDropzone({
               disabled={parsing}
               className="rounded-md px-3 py-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
             >
-              Remove
+              {t('dropzone.remove')}
             </button>
           </div>
 
@@ -127,7 +129,7 @@ export function ImportDropzone({
                 htmlFor="pdf-password"
                 className="block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400"
               >
-                PDF password
+                {t('dropzone.pdfPassword')}
               </label>
               <input
                 id="pdf-password"
@@ -138,7 +140,7 @@ export function ImportDropzone({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && password) submit()
                 }}
-                placeholder="Enter password to unlock"
+                placeholder={t('dropzone.passwordPlaceholder')}
                 className="mt-1 w-full rounded-md border-0 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900"
               />
               <label className="mt-2 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
@@ -148,9 +150,9 @@ export function ImportDropzone({
                   onChange={(e) => setRememberPassword(e.target.checked)}
                   className="h-3.5 w-3.5 rounded border-slate-300"
                 />
-                Remember this password for future imports
+                {t('dropzone.remember')}
                 <span className="text-slate-400 dark:text-slate-500">
-                  (stored locally on this device)
+                  {t('dropzone.storedLocally')}
                 </span>
               </label>
             </div>
@@ -169,7 +171,7 @@ export function ImportDropzone({
               disabled={parsing || (needsPassword && !password)}
               className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              {parsing ? 'Parsing…' : 'Parse statement'}
+              {parsing ? t('dropzone.parsing') : t('dropzone.parse')}
             </button>
           </div>
         </div>

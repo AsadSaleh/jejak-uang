@@ -15,6 +15,7 @@ import { extractTransactions, type BankId } from '../import/banks'
 import { toReviewRows } from '../import/classify'
 import { detectStatementAccount } from '../import/detect-account'
 import { findAccountByNumber } from '../import/account-match'
+import { useI18n } from '../i18n/I18nProvider'
 import type {
   DetectedCounterparty,
   ReviewRow,
@@ -41,6 +42,9 @@ function ImportPage() {
   const { create: createBatch } = useBatches()
   const { addToast } = useToast()
   const navigate = useNavigate()
+  const { t } = useI18n()
+  const entriesWord = (n: number) =>
+    n === 1 ? t('common.entry') : t('common.entries')
 
   const [rows, setRows] = useState<ReviewRow[] | null>(null)
   const [parsing, setParsing] = useState(false)
@@ -100,17 +104,15 @@ function ImportPage() {
     setFileName(incomingFileName)
     try {
       const { doc, unlockedBySaved } = await autoUnlock(bytes, password)
-      if (unlockedBySaved) toast.success('Unlocked with a saved password')
+      if (unlockedBySaved) toast.success(t('import.unlockedSaved'))
       // First-time manual unlock: persist if the user opted in.
       if (password && rememberPassword) {
         await passwordRepository.upsert({ password })
-        toast.success('Password saved for future imports')
+        toast.success(t('import.passwordSaved'))
       }
       const extracted = extractTransactions(doc)
       if (extracted.candidates.length === 0) {
-        setError(
-          'No transactions could be extracted from this PDF. It may use an unsupported layout.',
-        )
+        setError(t('import.noTransactions'))
         return
       }
       const detectedAccount = detectStatementAccount(doc.text)
@@ -129,11 +131,11 @@ function ImportPage() {
         setNeedsPassword(true)
         setError(
           password
-            ? 'Incorrect password. Please try again.'
-            : 'This PDF is password protected. Enter the password to continue.',
+            ? t('import.incorrectPassword')
+            : t('import.passwordProtected'),
         )
       } else {
-        setError(`Could not parse the PDF: ${(err as Error).message}`)
+        setError(t('import.parseError', { message: (err as Error).message }))
       }
     } finally {
       setParsing(false)
@@ -184,11 +186,16 @@ function ImportPage() {
       isPocket: false,
     })
     const touched = reclassifyRowsForOwnAccount(created)
+    const label = `${created.bank} — ${created.label}`
     addToast({
       message:
         touched > 0
-          ? `Registered ${created.bank} — ${created.label}, reclassified ${touched} ${touched === 1 ? 'row' : 'rows'}`
-          : `Registered ${created.bank} — ${created.label}`,
+          ? t('import.registeredReclass', {
+              label,
+              count: touched,
+              rows: touched === 1 ? t('import.row') : t('import.rows'),
+            })
+          : t('import.registered', { label }),
     })
   }
 
@@ -236,13 +243,13 @@ function ImportPage() {
       })
       await refresh()
       toast.success(
-        `Imported ${included.length} ${included.length === 1 ? 'entry' : 'entries'}`,
+        `${t('import.importedToast', { count: included.length })} ${entriesWord(included.length)}`,
         {
           // Keep this one around longer so the View-entries action is
           // reachable; the regular 4s isn't enough.
           duration: 12000,
           action: {
-            label: 'View entries',
+            label: t('import.viewEntries'),
             onClick: () => navigate({ to: '/entries' }),
           },
         },
@@ -260,20 +267,21 @@ function ImportPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Import statement</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t('import.title')}
+        </h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Drop a bank statement PDF to extract transactions. Review the proposed
-          entries, fix anything flagged, then import.
+          {t('import.subtitle')}
         </p>
       </div>
 
       {accounts.length === 0 && (
         <p className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Tip: register your accounts on{' '}
+          {t('import.tip1')}{' '}
           <Link to="/accounts" className="font-medium underline">
-            Accounts
+            {t('nav.accounts')}
           </Link>{' '}
-          first so transfers between your own banks are detected automatically.
+          {t('import.tip2')}
         </p>
       )}
 
@@ -300,22 +308,22 @@ function ImportPage() {
             >
               {detected.matched ? (
                 <>
-                  Statement account detected:{' '}
+                  {t('import.detectedMatched')}{' '}
                   <span className="font-medium">
                     {detected.matched.bank} — {detected.matched.label}
                   </span>{' '}
-                  (<span className="font-mono">{detected.number}</span>). It has
-                  been pre-filled on each row.
+                  (<span className="font-mono">{detected.number}</span>).{' '}
+                  {t('import.detectedMatchedTail')}
                 </>
               ) : (
                 <>
-                  Detected account{' '}
-                  <span className="font-mono">{detected.number}</span> is not in
-                  your registry.{' '}
+                  {t('import.detectedUnmatched')}{' '}
+                  <span className="font-mono">{detected.number}</span>{' '}
+                  {t('import.detectedUnmatchedMid')}{' '}
                   <Link to="/accounts" className="font-medium underline">
-                    Add it
+                    {t('import.addIt')}
                   </Link>{' '}
-                  so transfers from this statement are auto-detected next time.
+                  {t('import.detectedUnmatchedTail')}
                 </>
               )}
             </div>
@@ -331,18 +339,18 @@ function ImportPage() {
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
               {bank && bank !== 'generic' && (
                 <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-300">
-                  {bank} adapter
+                  {t('import.adapter', { bank })}
                 </span>
               )}
               <span>
-                <span className="font-medium text-slate-900">
-                  {stats?.selected}
-                </span>{' '}
-                of {stats?.total} selected
+                {t('import.selectedOf', {
+                  selected: stats?.selected ?? 0,
+                  total: stats?.total ?? 0,
+                })}
               </span>
               {stats && stats.review > 0 && (
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                  {stats.review} need review
+                  {t('import.needReview', { count: stats.review })}
                 </span>
               )}
             </div>
@@ -358,7 +366,7 @@ function ImportPage() {
                 disabled={importing}
                 className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -367,10 +375,8 @@ function ImportPage() {
                 className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-emerald-600/40 dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:disabled:bg-emerald-900/50"
               >
                 {importing
-                  ? 'Importing…'
-                  : `Import ${stats?.selected ?? 0} ${
-                      (stats?.selected ?? 0) === 1 ? 'entry' : 'entries'
-                    }`}
+                  ? t('import.importing')
+                  : `${t('import.importBtn', { count: stats?.selected ?? 0 })} ${entriesWord(stats?.selected ?? 0)}`}
               </button>
             </div>
           </div>

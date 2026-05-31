@@ -15,9 +15,7 @@ import {
   SelectTrigger,
 } from './ui/select'
 import { InfoTooltip } from './ui/tooltip'
-
-const NEEDS_REVIEW_HELP =
-  'Flags this entry as uncertain — something to double-check later (an unclear category, a guessed amount, an unmatched account). You can filter by "Needs review" on the Entries page to find and clean these up.'
+import { useI18n } from '../i18n/I18nProvider'
 
 const TYPE_VALUES: EntryType[] = [
   'expense',
@@ -79,6 +77,7 @@ export function EntryForm({
   submitLabel = 'Save',
 }: EntryFormProps) {
   const { accounts } = useAccounts()
+  const { t } = useI18n()
   const [form, setForm] = useState<FormState>(() =>
     initial ? fromEntry(initial) : blank,
   )
@@ -137,7 +136,7 @@ export function EntryForm({
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
     >
-      <Field label="Type" htmlFor="type">
+      <Field label={t('entryForm.type')} htmlFor="type">
         <Select
           value={form.type}
           onValueChange={(v) => handleTypeChange(v as EntryType)}
@@ -157,7 +156,7 @@ export function EntryForm({
 
       {/* Date + Amount remain side-by-side: both short, paired logically. */}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Date" htmlFor="date">
+        <Field label={t('entryForm.date')} htmlFor="date">
           <input
             id="date"
             type="date"
@@ -167,7 +166,7 @@ export function EntryForm({
             className={inputCls}
           />
         </Field>
-        <Field label="Amount" htmlFor="amount">
+        <Field label={t('entryForm.amount')} htmlFor="amount">
           <NumericFormat
             id="amount"
             value={form.amount || ''}
@@ -186,7 +185,7 @@ export function EntryForm({
         </Field>
       </div>
 
-      <Field label="Category" htmlFor="category">
+      <Field label={t('entryForm.category')} htmlFor="category">
         <Select
           value={form.category}
           onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}
@@ -206,7 +205,7 @@ export function EntryForm({
 
       {transferMode ? (
         <>
-          <Field label="From account" htmlFor="from">
+          <Field label={t('entryForm.fromAccount')} htmlFor="from">
             <AccountSelect
               id="from"
               accounts={accounts}
@@ -214,7 +213,7 @@ export function EntryForm({
               onChange={(v) => setForm((f) => ({ ...f, fromAccountId: v }))}
             />
           </Field>
-          <Field label="To account" htmlFor="to">
+          <Field label={t('entryForm.toAccount')} htmlFor="to">
             <AccountSelect
               id="to"
               accounts={accounts}
@@ -224,16 +223,16 @@ export function EntryForm({
           </Field>
           {accounts.length === 0 && (
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              No accounts registered yet.{' '}
+              {t('entryForm.noAccounts')}{' '}
               <Link to="/accounts" className="font-medium underline">
-                Add your accounts
+                {t('entryForm.addAccounts')}
               </Link>{' '}
-              to label transfers.
+              {t('entryForm.toLabelTransfers')}
             </p>
           )}
         </>
       ) : (
-        <Field label="Account (optional)" htmlFor="account">
+        <Field label={t('entryForm.account')} htmlFor="account">
           <AccountSelect
             id="account"
             accounts={accounts}
@@ -244,13 +243,13 @@ export function EntryForm({
         </Field>
       )}
 
-      <Field label="Note" htmlFor="note">
+      <Field label={t('entryForm.note')} htmlFor="note">
         <input
           id="note"
           type="text"
           value={form.note}
           onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-          placeholder="Optional"
+          placeholder={t('entryForm.notePlaceholder')}
           className={inputCls}
         />
       </Field>
@@ -265,12 +264,12 @@ export function EntryForm({
             }
             className="h-4 w-4 rounded border-slate-300"
           />
-          Needs review
+          {t('entryForm.needsReview')}
         </label>
-        <InfoTooltip content={NEEDS_REVIEW_HELP}>
+        <InfoTooltip content={t('entryForm.needsReviewHelp')}>
           <button
             type="button"
-            aria-label="What does “Needs review” mean?"
+            aria-label={t('entryForm.needsReviewAria')}
             className="text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200"
           >
             <Info className="h-3.5 w-3.5" />
@@ -285,7 +284,7 @@ export function EntryForm({
             onClick={onCancel}
             className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
         )}
         <button
@@ -293,7 +292,7 @@ export function EntryForm({
           disabled={submitting || !form.amount || transferIncomplete}
           className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
         >
-          {submitting ? 'Saving…' : submitLabel}
+          {submitting ? t('common.saving') : submitLabel}
         </button>
       </div>
     </form>
@@ -333,6 +332,7 @@ function AccountSelect({
   onChange: (value: string) => void
   allowEmpty?: boolean
 }) {
+  const { t } = useI18n()
   return (
     <select
       id={id}
@@ -340,7 +340,9 @@ function AccountSelect({
       onChange={(e) => onChange(e.target.value)}
       className={inputCls}
     >
-      <option value="">{allowEmpty ? '— None —' : 'Select account…'}</option>
+      <option value="">
+        {allowEmpty ? t('entryForm.none') : t('entryForm.selectAccount')}
+      </option>
       {accounts.map((a) => (
         <option key={a.id} value={a.id}>
           {a.bank} — {a.label}

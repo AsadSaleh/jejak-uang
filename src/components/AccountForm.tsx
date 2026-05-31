@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Info } from 'lucide-react'
 import type { Account, NewAccount } from '../dal/types'
 import { BANKS, bankFor } from '../lib/banks'
+import { useI18n } from '../i18n/I18nProvider'
 import {
   Select,
   SelectContent,
@@ -16,9 +17,6 @@ interface AccountFormProps {
   onCancel?: () => void
   submitLabel?: string
 }
-
-const POCKET_HELP =
-  'A pocket is a sub-balance inside one bank (e.g. a Jago "Kantong" or a savings goal). Marking an account as a pocket lets the importer recognise pocket-to-pocket moves as internal transfers instead of counting them as spending.'
 
 function BankLogo({ name }: { name: string }) {
   const bank = bankFor(name)
@@ -56,6 +54,7 @@ export function AccountForm({
       : blank,
   )
   const [submitting, setSubmitting] = useState(false)
+  const { t } = useI18n()
 
   // Surface a legacy/custom bank value that isn't in the catalogue so editing
   // an old account doesn't silently drop its bank from the dropdown.
@@ -102,7 +101,7 @@ export function AccountForm({
       className="grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 md:grid-cols-6"
     >
       <div className="md:col-span-1">
-        <Label htmlFor="bank">Bank</Label>
+        <Label htmlFor="bank">{t('accountForm.bank')}</Label>
         <Select
           value={form.bank}
           onValueChange={(v) => setForm((f) => ({ ...f, bank: v }))}
@@ -125,20 +124,20 @@ export function AccountForm({
       </div>
 
       <div className="md:col-span-2">
-        <Label htmlFor="label">Label</Label>
+        <Label htmlFor="label">{t('accountForm.label')}</Label>
         <input
           id="label"
           type="text"
           required
           value={form.label}
           onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-          placeholder="e.g. Jago - Main Pocket"
+          placeholder={t('accountForm.labelPlaceholder')}
           className={inputCls}
         />
       </div>
 
       <div className="md:col-span-2">
-        <Label htmlFor="numbers">Account numbers / aliases</Label>
+        <Label htmlFor="numbers">{t('accountForm.numbers')}</Label>
         <input
           id="numbers"
           type="text"
@@ -146,18 +145,18 @@ export function AccountForm({
           onChange={(e) =>
             setForm((f) => ({ ...f, accountNumbersText: e.target.value }))
           }
-          placeholder="Comma-separated, e.g. 508678037289, 7178129206"
+          placeholder={t('accountForm.numbersPlaceholder')}
           className={inputCls}
         />
       </div>
 
       <div className="md:col-span-1">
         <div className="flex items-center gap-1">
-          <Label>Pocket</Label>
-          <InfoTooltip content={POCKET_HELP}>
+          <Label>{t('accountForm.pocket')}</Label>
+          <InfoTooltip content={t('accountForm.pocketHelp')}>
             <button
               type="button"
-              aria-label="What is a pocket?"
+              aria-label={t('accountForm.pocketAria')}
               className="text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200"
             >
               <Info className="h-3.5 w-3.5" />
@@ -173,7 +172,7 @@ export function AccountForm({
             }
             className="h-4 w-4 rounded border-slate-300"
           />
-          Is a pocket
+          {t('accountForm.isPocket')}
         </label>
       </div>
 
@@ -184,7 +183,7 @@ export function AccountForm({
             onClick={onCancel}
             className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
         )}
         <button
@@ -192,7 +191,7 @@ export function AccountForm({
           disabled={submitting || !form.label.trim()}
           className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
-          {submitting ? 'Saving…' : submitLabel}
+          {submitting ? t('common.saving') : submitLabel}
         </button>
       </div>
     </form>

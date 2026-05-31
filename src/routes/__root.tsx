@@ -14,6 +14,8 @@ import { ThemedSonner } from '../components/ThemedSonner'
 import { ThemeProvider } from '../components/ThemeProvider'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { ToastProvider } from '../components/ToastProvider'
+import { I18nProvider, useI18n } from '../i18n/I18nProvider'
+import type { TranslationKey } from '../i18n/translations'
 import appCss from '../styles.css?url'
 
 // Reads the saved theme + system preference and sets the dark class on <html>
@@ -42,12 +44,12 @@ export const Route = createRootRoute({
 
 type NavPath = '/' | '/entries' | '/import' | '/accounts' | '/settings'
 
-const NAV: { to: NavPath; label: string }[] = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/entries', label: 'Entries' },
-  { to: '/import', label: 'Import' },
-  { to: '/accounts', label: 'Accounts' },
-  { to: '/settings', label: 'Settings' },
+const NAV: { to: NavPath; labelKey: TranslationKey }[] = [
+  { to: '/', labelKey: 'nav.dashboard' },
+  { to: '/entries', labelKey: 'nav.entries' },
+  { to: '/import', labelKey: 'nav.import' },
+  { to: '/accounts', labelKey: 'nav.accounts' },
+  { to: '/settings', labelKey: 'nav.settings' },
 ]
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -58,10 +60,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
         <ThemeProvider>
-          <ThemedSonner />
-          <ToastProvider>
-            <AppShell>{children}</AppShell>
-          </ToastProvider>
+          <I18nProvider>
+            <ThemedSonner />
+            <ToastProvider>
+              <AppShell>{children}</AppShell>
+            </ToastProvider>
+          </I18nProvider>
         </ThemeProvider>
         <TanStackDevtools
           config={{ position: 'bottom-right' }}
@@ -80,6 +84,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const { t } = useI18n()
 
   return (
     <>
@@ -97,7 +102,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="mt-6 flex flex-col gap-1">
           {NAV.map((item) => (
             <SideNavLink key={item.to} to={item.to}>
-              {item.label}
+              {t(item.labelKey)}
             </SideNavLink>
           ))}
         </nav>
@@ -108,7 +113,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           onClick={() => setMobileNavOpen(true)}
-          aria-label="Open navigation"
+          aria-label={t('nav.open')}
           className="rounded-md p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           <Menu className="h-5 w-5" />
@@ -128,7 +133,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <BottomSheet
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
-        title="Navigate"
+        title={t('nav.navigate')}
       >
         <nav className="flex flex-col gap-1">
           {NAV.map((item) => (
@@ -137,7 +142,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               to={item.to}
               onClick={() => setMobileNavOpen(false)}
             >
-              {item.label}
+              {t(item.labelKey)}
             </SideNavLink>
           ))}
         </nav>

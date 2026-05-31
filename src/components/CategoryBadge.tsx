@@ -27,6 +27,8 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react'
+import { useI18n } from '../i18n/I18nProvider'
+import { categoryLabel } from '../i18n/translations'
 import { Badge } from './ui/badge'
 
 // Maps category names (case-insensitive) to a lucide icon. Includes both the
@@ -91,11 +93,12 @@ interface CategoryBadgeProps {
 }
 
 export function CategoryBadge({ category, className }: CategoryBadgeProps) {
+  const { locale } = useI18n()
   const Icon = iconFor(category)
   return (
     <Badge variant="outline" className={className}>
       <Icon className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-      {category}
+      {categoryLabel(category, locale)}
     </Badge>
   )
 }

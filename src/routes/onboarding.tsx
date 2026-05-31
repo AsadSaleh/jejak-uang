@@ -7,17 +7,20 @@ import { EntryForm } from '../components/EntryForm'
 import { useAccounts } from '../dal/use-accounts'
 import { useEntries } from '../dal/use-entries'
 import { markOnboarded } from '../lib/app-data'
+import { useI18n } from '../i18n/I18nProvider'
+import type { TranslationKey } from '../i18n/translations'
 
 export const Route = createFileRoute('/onboarding')({ component: Onboarding })
 
-const STEPS = [
-  { n: 1, title: 'Add an account', blurb: 'Register a bank or pocket.' },
-  { n: 2, title: 'Add a transaction', blurb: 'Record one entry by hand.' },
-  { n: 3, title: 'See your dashboard', blurb: 'You are all set.' },
+const STEPS: { n: number; titleKey: TranslationKey }[] = [
+  { n: 1, titleKey: 'onboarding.step1Title' },
+  { n: 2, titleKey: 'onboarding.step2Title' },
+  { n: 3, titleKey: 'onboarding.step3Title' },
 ]
 
 function Onboarding() {
   const navigate = useNavigate()
+  const { t } = useI18n()
   const { create: createAccount } = useAccounts()
   const { create: createEntry } = useEntries()
   const [step, setStep] = useState<1 | 2>(1)
@@ -32,10 +35,10 @@ function Onboarding() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Welcome to Jejak Uang 👋
+            {t('onboarding.welcomeTitle')}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Two quick steps and you'll have your first numbers on the dashboard.
+            {t('onboarding.welcomeSubtitle')}
           </p>
         </div>
         <button
@@ -43,7 +46,7 @@ function Onboarding() {
           onClick={finish}
           className="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
         >
-          Skip
+          {t('onboarding.skip')}
         </button>
       </div>
 
@@ -52,15 +55,14 @@ function Onboarding() {
       {step === 1 ? (
         <section className="space-y-3">
           <StepHeading
-            n={1}
-            title="Add an account"
-            blurb="Pick your bank and give it a label. You can add the rest later from the Accounts page."
+            title={t('onboarding.step1Heading')}
+            blurb={t('onboarding.step1Desc')}
           />
           <AccountForm
-            submitLabel="Add account & continue"
+            submitLabel={t('onboarding.step1Submit')}
             onSubmit={async (input) => {
               await createAccount(input)
-              toast.success('Account added')
+              toast.success(t('onboarding.accountAdded'))
               setStep(2)
             }}
           />
@@ -68,21 +70,20 @@ function Onboarding() {
       ) : (
         <section className="space-y-3">
           <StepHeading
-            n={2}
-            title="Add a transaction"
-            blurb="Log one income or expense by hand so the dashboard has something to show."
+            title={t('onboarding.step2Heading')}
+            blurb={t('onboarding.step2Desc')}
           />
           <EntryForm
-            submitLabel="Add transaction & finish"
+            submitLabel={t('onboarding.step2Submit')}
             onCancel={() => setStep(1)}
             onSubmit={async (input) => {
               await createEntry({ ...input, source: 'manual' })
-              toast.success('Transaction added')
+              toast.success(t('onboarding.transactionAdded'))
               finish()
             }}
           />
           <p className="text-center text-xs text-slate-400 dark:text-slate-500">
-            (Cancel takes you back to the account step.)
+            {t('onboarding.cancelHint')}
           </p>
         </section>
       )}
@@ -91,6 +92,7 @@ function Onboarding() {
 }
 
 function Stepper({ current }: { current: number }) {
+  const { t } = useI18n()
   return (
     <ol className="flex items-center gap-2">
       {STEPS.map((s, i) => {
@@ -120,7 +122,7 @@ function Stepper({ current }: { current: number }) {
                       : 'text-slate-500 dark:text-slate-400',
                   ].join(' ')}
                 >
-                  {s.title}
+                  {t(s.titleKey)}
                 </p>
               </div>
             </div>
@@ -134,20 +136,10 @@ function Stepper({ current }: { current: number }) {
   )
 }
 
-function StepHeading({
-  n,
-  title,
-  blurb,
-}: {
-  n: number
-  title: string
-  blurb: string
-}) {
+function StepHeading({ title, blurb }: { title: string; blurb: string }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold tracking-tight">
-        Step {n}: {title}
-      </h2>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
       <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{blurb}</p>
     </div>
   )
