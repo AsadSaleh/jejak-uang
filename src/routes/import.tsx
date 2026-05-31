@@ -12,6 +12,7 @@ import { isTransfer, type NewEntry } from '../dal/types'
 import { parsePdf, PdfPasswordError, type ParsedDoc } from '../import/parse-pdf'
 import { passwordRepository } from '../dal'
 import { extractTransactions, type BankId } from '../import/banks'
+import { BANKS } from '../lib/banks'
 import { toReviewRows } from '../import/classify'
 import { detectStatementAccount } from '../import/detect-account'
 import { findAccountByNumber } from '../import/account-match'
@@ -51,6 +52,7 @@ function ImportPage() {
   const [error, setError] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
   const [detected, setDetected] = useState<DetectedStatementAccount | null>(null)
+  const [addingAccount, setAddingAccount] = useState(false)
   const [bank, setBank] = useState<BankId | null>(null)
   const [needsPassword, setNeedsPassword] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
@@ -199,6 +201,63 @@ function ImportPage() {
     })
   }
 
+  // Fills the statement's own account onto every row that lacks it, mirroring
+  // classify.ts's applyStatementAccount: income/expense get accountId; transfers
+  // get the side opposite the money flow (debit leaves, credit enters).
+  function applyStatementAccountToRows(account: Account): number {
+    if (!rows) return 0
+    let touched = 0
+    const next = rows.map((r) => {
+      if (r.type === 'income' || r.type === 'expense') {
+        if (r.accountId) return r
+        touched++
+        return { ...r, accountId: account.id }
+      }
+      if (r.direction === 'debit' && !r.fromAccountId) {
+        touched++
+        return { ...r, fromAccountId: account.id }
+      }
+      if (r.direction === 'credit' && !r.toAccountId) {
+        touched++
+        return { ...r, toAccountId: account.id }
+      }
+      return r
+    })
+    setRows(next)
+    return touched
+  }
+
+  // Registers the detected statement account inline and back-fills it onto the
+  // already-parsed rows, so the user never has to leave the import page.
+  async function handleAddStatementAccount() {
+    if (!detected || detected.matched || addingAccount) return
+    setAddingAccount(true)
+    try {
+      const bankName = BANKS.find((b) => b.id === bank)?.name ?? 'Other'
+      const created = await createAccount({
+        bank: bankName,
+        label: `••••${detected.number.slice(-4)} (Auto created)`,
+        accountNumbers: [detected.number],
+        isPocket: false,
+      })
+      const touched = applyStatementAccountToRows(created)
+      setDetected({ number: detected.number, matched: created })
+      const label = `${created.bank} — ${created.label}`
+      addToast({
+        message:
+          touched > 0
+            ? t('import.statementAddedFilled', {
+                label,
+                count: touched,
+                rows: touched === 1 ? t('import.row') : t('import.rows'),
+              })
+            : t('import.statementAdded', { label }),
+      })
+    } finally {
+      setAddingAccount(false)
+    }
+  }
+
   async function handleImport() {
     if (!rows) return
     const included = rows.filter((r) => r.include)
@@ -300,30 +359,37 @@ function ImportPage() {
         <>
           {detected && (
             <div
-              className={`rounded-md px-4 py-3 text-sm ${
+              className={`flex flex-wrap items-center justify-between gap-3 rounded-md px-4 py-3 text-sm ${
                 detected.matched
                   ? 'bg-sky-50 text-sky-800'
                   : 'bg-amber-50 text-amber-700'
               }`}
             >
               {detected.matched ? (
-                <>
+                <span>
                   {t('import.detectedMatched')}{' '}
                   <span className="font-medium">
                     {detected.matched.bank} — {detected.matched.label}
                   </span>{' '}
                   (<span className="font-mono">{detected.number}</span>).{' '}
                   {t('import.detectedMatchedTail')}
-                </>
+                </span>
               ) : (
                 <>
-                  {t('import.detectedUnmatched')}{' '}
-                  <span className="font-mono">{detected.number}</span>{' '}
-                  {t('import.detectedUnmatchedMid')}{' '}
-                  <Link to="/accounts" className="font-medium underline">
-                    {t('import.addIt')}
-                  </Link>{' '}
-                  {t('import.detectedUnmatchedTail')}
+                  <span>
+                    {t('import.detectedUnmatched')}{' '}
+                    <span className="font-mono">{detected.number}</span>{' '}
+                    {t('import.detectedUnmatchedMid')}{' '}
+                    {t('import.detectedUnmatchedTail')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleAddStatementAccount()}
+                    disabled={addingAccount}
+                    className="shrink-0 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {addingAccount ? t('common.saving') : t('import.addIt')}
+                  </button>
                 </>
               )}
             </div>

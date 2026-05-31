@@ -185,7 +185,7 @@ export const en = {
   'import.detectedUnmatchedMid': 'is not in your registry.',
   'import.addIt': 'Add it',
   'import.detectedUnmatchedTail':
-    'so transfers from this statement are auto-detected next time.',
+    'Adding it lets transfers from this statement be detected automatically next time.',
   'import.adapter': '{bank} adapter',
   'import.selectedOf': '{selected} of {total} selected',
   'import.needReview': '{count} need review',
@@ -195,6 +195,8 @@ export const en = {
   'import.viewEntries': 'View entries',
   'import.registered': 'Registered {label}',
   'import.registeredReclass': 'Registered {label}, reclassified {count} {rows}',
+  'import.statementAdded': 'Added {label}',
+  'import.statementAddedFilled': 'Added {label}, pre-filled {count} {rows}',
   'import.row': 'row',
   'import.rows': 'rows',
 
@@ -537,7 +539,7 @@ export const id: Record<TranslationKey, string> = {
   'import.detectedUnmatchedMid': 'belum terdaftar.',
   'import.addIt': 'Tambahkan',
   'import.detectedUnmatchedTail':
-    'agar transfer dari mutasi ini terdeteksi otomatis lain kali.',
+    'Menambahkannya membuat transfer dari mutasi ini terdeteksi otomatis lain kali.',
   'import.adapter': 'adaptor {bank}',
   'import.selectedOf': '{selected} dari {total} dipilih',
   'import.needReview': '{count} perlu ditinjau',
@@ -547,6 +549,8 @@ export const id: Record<TranslationKey, string> = {
   'import.viewEntries': 'Lihat transaksi',
   'import.registered': 'Mendaftarkan {label}',
   'import.registeredReclass': 'Mendaftarkan {label}, mengklasifikasi ulang {count} {rows}',
+  'import.statementAdded': 'Menambahkan {label}',
+  'import.statementAddedFilled': 'Menambahkan {label}, mengisi otomatis {count} {rows}',
   'import.row': 'baris',
   'import.rows': 'baris',
 
