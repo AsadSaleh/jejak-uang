@@ -1,7 +1,8 @@
 import type { Account, AccountPatch, NewAccount } from './types'
 import type { AccountRepository } from './account-repository'
 
-const STORAGE_KEY = 'money-tracker.accounts.v1'
+const STORAGE_KEY = 'jejak-uang.accounts.v1'
+const LEGACY_KEY = 'money-tracker.accounts.v1'
 
 function makeId() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -13,7 +14,15 @@ function makeId() {
 function readAll(): Account[] {
   if (typeof window === 'undefined') return []
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    let raw = window.localStorage.getItem(STORAGE_KEY)
+    // One-time migration from the old key namespace.
+    if (!raw) {
+      const legacy = window.localStorage.getItem(LEGACY_KEY)
+      if (legacy) {
+        window.localStorage.setItem(STORAGE_KEY, legacy)
+        raw = legacy
+      }
+    }
     if (!raw) return []
     const parsed = JSON.parse(raw)
     return Array.isArray(parsed) ? (parsed as Account[]) : []

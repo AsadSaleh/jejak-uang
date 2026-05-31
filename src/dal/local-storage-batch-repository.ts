@@ -1,7 +1,8 @@
 import type { ImportBatch, NewImportBatch } from './types'
 import type { BatchRepository } from './batch-repository'
 
-const STORAGE_KEY = 'money-tracker.batches.v1'
+const STORAGE_KEY = 'jejak-uang.batches.v1'
+const LEGACY_KEY = 'money-tracker.batches.v1'
 
 function makeId() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -13,7 +14,14 @@ function makeId() {
 function readAll(): ImportBatch[] {
   if (typeof window === 'undefined') return []
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    let raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) {
+      const legacy = window.localStorage.getItem(LEGACY_KEY)
+      if (legacy) {
+        window.localStorage.setItem(STORAGE_KEY, legacy)
+        raw = legacy
+      }
+    }
     if (!raw) return []
     const parsed = JSON.parse(raw)
     return Array.isArray(parsed) ? (parsed as ImportBatch[]) : []

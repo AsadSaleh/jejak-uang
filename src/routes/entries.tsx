@@ -87,7 +87,8 @@ const DEFAULT_VISIBILITY: ColumnVisibility = {
   added: true,
 }
 
-const VISIBILITY_STORAGE_KEY = 'money-tracker.entries.column-visibility'
+const VISIBILITY_STORAGE_KEY = 'jejak-uang.entries.column-visibility'
+const LEGACY_VISIBILITY_STORAGE_KEY = 'money-tracker.entries.column-visibility'
 
 export const Route = createFileRoute('/entries')({
   component: EntriesPage,
@@ -149,7 +150,9 @@ function EntriesPage() {
     () => {
       if (typeof window === 'undefined') return DEFAULT_VISIBILITY
       try {
-        const raw = window.localStorage.getItem(VISIBILITY_STORAGE_KEY)
+        const raw =
+          window.localStorage.getItem(VISIBILITY_STORAGE_KEY) ??
+          window.localStorage.getItem(LEGACY_VISIBILITY_STORAGE_KEY)
         if (!raw) return DEFAULT_VISIBILITY
         const parsed = JSON.parse(raw) as Partial<ColumnVisibility>
         return { ...DEFAULT_VISIBILITY, ...parsed }

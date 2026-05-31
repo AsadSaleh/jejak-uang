@@ -1,6 +1,7 @@
 import type { NewSavedPassword, PasswordRepository, SavedPassword } from './password-repository'
 
-const STORAGE_KEY = 'money-tracker.pdf-passwords.v1'
+const STORAGE_KEY = 'jejak-uang.pdf-passwords.v1'
+const LEGACY_KEY = 'money-tracker.pdf-passwords.v1'
 
 function nowISO() {
   return new Date().toISOString()
@@ -16,7 +17,14 @@ function makeId() {
 function readAll(): SavedPassword[] {
   if (typeof window === 'undefined') return []
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    let raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) {
+      const legacy = window.localStorage.getItem(LEGACY_KEY)
+      if (legacy) {
+        window.localStorage.setItem(STORAGE_KEY, legacy)
+        raw = legacy
+      }
+    }
     if (!raw) return []
     const parsed = JSON.parse(raw)
     return Array.isArray(parsed) ? (parsed as SavedPassword[]) : []

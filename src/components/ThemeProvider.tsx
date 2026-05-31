@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 
 export type Theme = 'light' | 'dark' | 'system'
 
-const STORAGE_KEY = 'money-tracker.theme'
+const STORAGE_KEY = 'jejak-uang.theme'
+const LEGACY_STORAGE_KEY = 'money-tracker.theme'
 
 interface ThemeContextValue {
   theme: Theme
@@ -29,7 +30,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null
+      const stored = (window.localStorage.getItem(STORAGE_KEY) ??
+        window.localStorage.getItem(LEGACY_STORAGE_KEY)) as Theme | null
       if (stored === 'light' || stored === 'dark' || stored === 'system') {
         setThemeState(stored)
       }

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
+import { cloudflare } from '@cloudflare/vite-plugin'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 
@@ -10,7 +11,13 @@ const config = defineConfig({
   resolve: { tsconfigPaths: true },
   // The liteparse wasm glue must not be pre-bundled by esbuild.
   optimizeDeps: { exclude: ['@llamaindex/liteparse-wasm'] },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  plugins: [
+    devtools(),
+    cloudflare({ viteEnvironment: { name: 'ssr' } }),
+    tailwindcss(),
+    tanstackStart(),
+    viteReact(),
+  ],
 })
 
 export default config

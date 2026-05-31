@@ -18,14 +18,14 @@ import appCss from '../styles.css?url'
 
 // Reads the saved theme + system preference and sets the dark class on <html>
 // before React hydrates, preventing a light/dark flash on first paint.
-const noFlashScript = `(function(){try{var t=localStorage.getItem('money-tracker.theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`
+const noFlashScript = `(function(){try{var t=localStorage.getItem('jejak-uang.theme')||localStorage.getItem('money-tracker.theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Money Tracker' },
+      { title: 'Jejak Uang' },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
     scripts: [{ children: noFlashScript }],
@@ -82,7 +82,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             to="/"
             className="text-lg font-semibold tracking-tight"
           >
-            💰 Money Tracker
+            💰 Jejak Uang
           </Link>
           <ThemeToggle />
         </div>
@@ -106,7 +106,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <Menu className="h-5 w-5" />
         </button>
         <Link to="/" className="text-base font-semibold tracking-tight">
-          💰 Money Tracker
+          💰 Jejak Uang
         </Link>
         <ThemeToggle />
       </header>

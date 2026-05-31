@@ -1,0 +1,16 @@
+# Long-cache content-hashed build assets — they'll never have the same URL
+# after the file changes, so a 1-year immutable cache is safe.
+/_build/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Lite Parse wasm is ~3.9 MB; cache it aggressively too.
+/*.wasm
+  Cache-Control: public, max-age=31536000, immutable
+
+# Conservative security headers for the SSR HTML.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

@@ -2,8 +2,13 @@ import type { Entry, EntryPatch, EntryType, NewEntry } from './types'
 import type { EntryRepository } from './repository'
 import { guessCategory } from '../lib/category-map'
 
-const STORAGE_KEY = 'money-tracker.entries.v2'
-const LEGACY_KEY = 'money-tracker.entries.v1'
+const STORAGE_KEY = 'jejak-uang.entries.v2'
+// Legacy keys, newest -> oldest. The migration chain walks them in order;
+// first hit wins, gets normalized, and is written under the new namespace.
+const LEGACY_KEYS = [
+  'money-tracker.entries.v2',
+  'money-tracker.entries.v1',
+]
 
 // Direct translations for legacy English category labels -> Bahasa Indonesia.
 // "Food" and "Utilities" are special-cased: we re-run the keyword guesser so
@@ -99,9 +104,10 @@ function readAll(): Entry[] {
       const parsed = JSON.parse(raw)
       return Array.isArray(parsed) ? parsed.map(normalize) : []
     }
-    // Migrate legacy v1 data on first read.
-    const legacy = window.localStorage.getItem(LEGACY_KEY)
-    if (legacy) {
+    // Walk legacy keys (newest first) and migrate the first hit.
+    for (const key of LEGACY_KEYS) {
+      const legacy = window.localStorage.getItem(key)
+      if (!legacy) continue
       const parsed = JSON.parse(legacy)
       const migrated = Array.isArray(parsed) ? parsed.map(normalize) : []
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
