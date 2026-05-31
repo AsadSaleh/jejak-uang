@@ -65,9 +65,11 @@ export function CategoryCombobox({
           )}
         >
           {variant === 'badge' && value ? (
-            <CategoryBadge category={value} />
+            <span className="px-1">
+              <CategoryBadge category={value} />
+            </span>
           ) : (
-            <span className="truncate text-xs">
+            <span className="truncate px-1 text-xs">
               {value ? categoryLabel(value, locale) : anyLabel}
             </span>
           )}
@@ -76,7 +78,7 @@ export function CategoryCombobox({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-60 min-w-[var(--radix-popover-trigger-width)] p-0"
       >
         <Command>
           <CommandInput placeholder={t('entryForm.searchCategory')} />

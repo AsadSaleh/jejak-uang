@@ -4,7 +4,7 @@ import { format, formatDistanceToNow, parseISO } from 'date-fns'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { CategoryBadge } from '../components/CategoryBadge'
+import { CategoryCombobox } from '../components/CategoryCombobox'
 import { ColumnPicker } from '../components/ColumnPicker'
 import {
   applyFilters,
@@ -25,12 +25,6 @@ import { DEFAULT_CATEGORIES, isTransfer } from '../dal/types'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useI18n } from '../i18n/I18nProvider'
 import type { TranslationKey } from '../i18n/translations'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '../components/ui/select'
 
 const COLUMN_LABEL_KEYS: Record<ToggleableColumn, TranslationKey> = {
   date: 'entries.colDate',
@@ -462,23 +456,14 @@ function EntriesPage() {
                         case 'category':
                           return (
                             <div key={id} className="px-3 py-3">
-                              <Select
+                              <CategoryCombobox
+                                className="h-7 w-auto gap-1 border-0 bg-transparent dark:bg-transparent p-0 shadow-none ring-0 hover:bg-slate-100 focus:ring-2 dark:hover:bg-slate-800"
                                 value={entry.category}
-                                onValueChange={(v) =>
+                                onChange={(v) =>
                                   void update(entry.id, { category: v })
                                 }
-                              >
-                                <SelectTrigger className="h-7 w-auto gap-1 border-0 bg-transparent p-0 shadow-none ring-0 hover:bg-slate-100 focus:ring-2 dark:hover:bg-slate-800">
-                                  <CategoryBadge category={entry.category} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {DEFAULT_CATEGORIES[entry.type].map((c) => (
-                                    <SelectItem key={c} value={c}>
-                                      <CategoryBadge category={c} />
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                categories={DEFAULT_CATEGORIES[entry.type]}
+                              />
                             </div>
                           )
                         case 'account': {
