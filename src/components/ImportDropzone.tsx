@@ -90,6 +90,9 @@ export function ImportDropzone({
         <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
           {t('dropzone.privacy')}
         </p>
+        <p className="mt-3 max-w-md rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+          {t('dropzone.supported')}
+        </p>
         <input
           ref={inputRef}
           type="file"

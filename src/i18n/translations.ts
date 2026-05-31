@@ -224,6 +224,8 @@ export const en = {
   // import dropzone
   'dropzone.prompt': 'Drop a bank statement PDF here, or click to browse',
   'dropzone.privacy': 'Parsed entirely in your browser — nothing is uploaded.',
+  'dropzone.supported':
+    'Currently supported PDFs: BCA, BCA Syariah, Mandiri, BSI, and Jago. Support for other banks is coming soon.',
   'dropzone.passwordRequired': '🔒 Password required',
   'dropzone.ready': 'Ready to parse',
   'dropzone.remove': 'Remove',
@@ -304,6 +306,21 @@ export const en = {
 
   // language
   'language.change': 'Change language',
+
+  // feature highlights
+  'features.title': 'Why Jejak Uang',
+  'features.privateTitle': 'Private by design',
+  'features.privateDesc':
+    'Everything runs in your browser. No servers, no tracking — your data never leaves your device.',
+  'features.importTitle': 'Auto-import',
+  'features.importDesc':
+    'Drop a bank statement PDF and your transactions are extracted for you automatically.',
+  'features.dashboardTitle': 'Insightful dashboard',
+  'features.dashboardDesc':
+    'Clear charts turn your income and spending into trends you can read at a glance.',
+  'features.everywhereTitle': 'Works everywhere',
+  'features.everywhereDesc':
+    'Fully responsive on your phone, with light and dark themes.',
 
   // categories (display labels; stored values stay Indonesian)
   'category.Makan': 'Food',
@@ -558,6 +575,8 @@ export const id: Record<TranslationKey, string> = {
   // import dropzone
   'dropzone.prompt': 'Letakkan PDF mutasi bank di sini, atau klik untuk memilih',
   'dropzone.privacy': 'Diproses sepenuhnya di browser Anda — tidak ada yang diunggah.',
+  'dropzone.supported':
+    'PDF yang didukung saat ini: BCA, BCA Syariah, Mandiri, BSI, dan Jago. Untuk bank lain fiturnya akan menyusul.',
   'dropzone.passwordRequired': '🔒 Perlu kata sandi',
   'dropzone.ready': 'Siap diproses',
   'dropzone.remove': 'Hapus',
@@ -638,6 +657,21 @@ export const id: Record<TranslationKey, string> = {
 
   // language
   'language.change': 'Ubah bahasa',
+
+  // feature highlights
+  'features.title': 'Kenapa Jejak Uang',
+  'features.privateTitle': 'Privasi sejak awal',
+  'features.privateDesc':
+    'Semuanya berjalan di browser Anda. Tanpa server, tanpa pelacakan — data Anda tidak pernah keluar dari perangkat.',
+  'features.importTitle': 'Impor otomatis',
+  'features.importDesc':
+    'Unggah PDF mutasi bank dan transaksi Anda diekstrak secara otomatis.',
+  'features.dashboardTitle': 'Dasbor informatif',
+  'features.dashboardDesc':
+    'Grafik yang jelas mengubah pemasukan dan pengeluaran menjadi tren yang mudah dibaca.',
+  'features.everywhereTitle': 'Bisa di mana saja',
+  'features.everywhereDesc':
+    'Responsif penuh di ponsel, dengan tema terang dan gelap.',
 
   // categories — Indonesian locale shows the stored value as-is
   'category.Makan': 'Makan',

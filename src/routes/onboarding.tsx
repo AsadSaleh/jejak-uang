@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { AccountForm } from '../components/AccountForm'
 import { EntryForm } from '../components/EntryForm'
+import { FeatureHighlights } from '../components/FeatureHighlights'
 import { useAccounts } from '../dal/use-accounts'
 import { useEntries } from '../dal/use-entries'
 import { markOnboarded } from '../lib/app-data'
@@ -49,6 +50,8 @@ function Onboarding() {
           {t('onboarding.skip')}
         </button>
       </div>
+
+      <FeatureHighlights />
 
       <Stepper current={step} />
 

@@ -27,7 +27,12 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Jejak Uang' },
+      { title: 'Jejak Uang — offline-first, auto-parsing money tracker' },
+      {
+        name: 'description',
+        content:
+          'Jejak Uang is a private, offline-first money tracker: auto-imports bank statement PDFs, runs entirely in your browser, and turns your spending into a beautiful dashboard.',
+      },
     ],
     links: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
