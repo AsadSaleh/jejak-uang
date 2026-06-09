@@ -49,7 +49,7 @@ const EXPENSE_RULES: Array<[RegExp, string]> = [
     /\b(resto|restoran|restaurant|warung|warkop|warmindo|rumah makan|rm\s|food court|kantin)\b/i,
     'Makan',
   ],
-  [/\b(ayam|nasi|bakso|mie|soto|sate|gado|martabak|pecel|rendang|bubur|somay|siomay|lotek|tahu telor|tahutelor|)\b/i, 'Makan'],
+  [/\b(ayam|nasi|bakso|mie|soto|sate|gado|martabak|pecel|rendang|bubur|somay|siomay|lotek|tahu telor|tahutelor)\b/i, 'Makan'],
   [/\bqr\s+(rm|warung|wikusama|royal|galaxy)\b/i, 'Makan'],
 
   // Transportation.

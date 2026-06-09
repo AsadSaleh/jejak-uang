@@ -10,6 +10,7 @@ import {
   Legend,
   Pie,
   PieChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -27,6 +28,7 @@ import {
 import { useEntries } from '../dal/use-entries'
 import {
   availableMonths,
+  buildBalanceSeries,
   buildDailySeries,
   dayOfWeekExpense,
   expenseByCategory,
@@ -66,7 +68,7 @@ function Dashboard() {
   const { entries, loading } = useEntries()
   const navigate = useNavigate()
   const { t, locale, dfLocale } = useI18n()
-  const [period, setPeriod] = useState<Period>({ kind: 'preset', key: '30d' })
+  const [period, setPeriod] = useState<Period>({ kind: 'preset', key: 'all' })
 
   // First run: a brand-new visitor with no data and who hasn't seen (or
   // skipped) the tour gets sent straight into onboarding.
@@ -87,6 +89,10 @@ function Dashboard() {
   const sums = useMemo(() => totals(filtered), [filtered])
   const series = useMemo(
     () => buildDailySeries(entries, period, undefined, dfLocale),
+    [entries, period, dfLocale],
+  )
+  const balanceSeries = useMemo(
+    () => buildBalanceSeries(entries, period, undefined, dfLocale),
     [entries, period, dfLocale],
   )
   const byCategory = useMemo(() => expenseByCategory(filtered), [filtered])
@@ -241,6 +247,61 @@ function Dashboard() {
                     stroke="#f43f5e"
                     strokeWidth={2}
                     fill="url(#gOut)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+
+          <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {t('dashboard.balanceTitle')}
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+              {t('dashboard.balanceSubtitle')}
+            </p>
+            <div className="mt-4 h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={balanceSeries}
+                  margin={{ top: 10, right: 16, left: -8, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="gBalance" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="label"
+                    fontSize={11}
+                    stroke="#94a3b8"
+                    tickLine={false}
+                    minTickGap={20}
+                  />
+                  <YAxis
+                    fontSize={11}
+                    stroke="#94a3b8"
+                    tickLine={false}
+                    tickFormatter={(v) => formatCurrency(Number(v)).replace('.00', '')}
+                  />
+                  <Tooltip
+                    formatter={(v) => formatCurrency(Number(v))}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: '1px solid #e2e8f0',
+                      fontSize: 12,
+                    }}
+                  />
+                  <ReferenceLine y={0} stroke="#cbd5e1" strokeDasharray="3 3" />
+                  <Area
+                    type="monotone"
+                    dataKey="balance"
+                    name={t('dashboard.balanceTitle')}
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    fill="url(#gBalance)"
                   />
                 </AreaChart>
               </ResponsiveContainer>

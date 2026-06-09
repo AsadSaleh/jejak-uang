@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { format, formatDistanceToNow, parseISO } from 'date-fns'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, Upload } from 'lucide-react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { CategoryCombobox } from '../components/CategoryCombobox'
@@ -17,6 +17,7 @@ import { SidePanel } from '../components/SidePanel'
 import { TypeBadge } from '../components/TypeBadge'
 import { useToast } from '../components/ToastProvider'
 import { Badge } from '../components/ui/badge'
+import { InfoTooltip } from '../components/ui/tooltip'
 import { useAccounts } from '../dal/use-accounts'
 import { useBatches } from '../dal/use-batches'
 import { useEntries } from '../dal/use-entries'
@@ -314,6 +315,14 @@ function EntriesPage() {
               }))
             }
           />
+          <InfoTooltip content={t('entries.importTooltip')}>
+            <Link
+              to="/import"
+              className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-800"
+            >
+              <Upload className="h-4 w-4" /> {t('entries.import')}
+            </Link>
+          </InfoTooltip>
           <button
             type="button"
             onClick={openCreate}

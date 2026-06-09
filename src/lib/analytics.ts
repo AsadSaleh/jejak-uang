@@ -172,6 +172,56 @@ export function buildDailySeries(
   })
 }
 
+export interface BalancePoint {
+  date: string
+  label: string
+  balance: number
+}
+
+// Running account balance over the period: income adds, expense subtracts.
+// Unlike buildDailySeries' cumulativeNet (which resets to 0 at the window
+// start), this carries forward an opening balance — the net of every
+// income/expense entry dated before the window — so the line reflects the
+// actual balance level, not just the change within the window.
+export function buildBalanceSeries(
+  entries: Entry[],
+  period: Period,
+  today = new Date(),
+  dfLocale?: DateFnsLocale,
+): BalancePoint[] {
+  let from: Date
+  let to: Date
+  if (period.kind === 'preset' && period.key === 'all') {
+    if (entries.length === 0) return []
+    const dates = entries.map((e) => parseISO(e.date)).sort((a, b) => +a - +b)
+    from = dates[0]
+    to = startOfDay(today)
+  } else {
+    const range = periodRange(period, today)
+    from = range.from
+    to = range.to
+  }
+
+  const fromIso = format(from, 'yyyy-MM-dd')
+  const toIso = format(to, 'yyyy-MM-dd')
+
+  let opening = 0
+  const byDay = new Map<string, number>()
+  for (const e of entries) {
+    if (e.type !== 'income' && e.type !== 'expense') continue
+    const delta = e.type === 'income' ? e.amount : -e.amount
+    if (e.date < fromIso) opening += delta
+    else if (e.date <= toIso) byDay.set(e.date, (byDay.get(e.date) ?? 0) + delta)
+  }
+
+  let bal = opening
+  return eachDayOfInterval({ start: from, end: to }).map((d) => {
+    const key = format(d, 'yyyy-MM-dd')
+    bal += byDay.get(key) ?? 0
+    return { date: key, label: format(d, 'MMM d', { locale: dfLocale }), balance: round2(bal) }
+  })
+}
+
 export interface CategoryTotal {
   category: string
   total: number

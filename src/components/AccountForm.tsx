@@ -98,9 +98,9 @@ export function AccountForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 md:grid-cols-6"
+      className="flex flex-col gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
     >
-      <div className="md:col-span-1">
+      <div>
         <Label htmlFor="bank">{t('accountForm.bank')}</Label>
         <Select
           value={form.bank}
@@ -123,7 +123,7 @@ export function AccountForm({
         </Select>
       </div>
 
-      <div className="md:col-span-2">
+      <div>
         <Label htmlFor="label">{t('accountForm.label')}</Label>
         <input
           id="label"
@@ -136,7 +136,7 @@ export function AccountForm({
         />
       </div>
 
-      <div className="md:col-span-2">
+      <div>
         <Label htmlFor="numbers">{t('accountForm.numbers')}</Label>
         <input
           id="numbers"
@@ -150,7 +150,7 @@ export function AccountForm({
         />
       </div>
 
-      <div className="md:col-span-1">
+      <div>
         <div className="flex items-center gap-1">
           <Label>{t('accountForm.pocket')}</Label>
           <InfoTooltip content={t('accountForm.pocketHelp')}>
@@ -176,7 +176,7 @@ export function AccountForm({
         </label>
       </div>
 
-      <div className="flex items-center justify-end gap-2 md:col-span-6">
+      <div className="mt-2 flex items-center justify-end gap-2">
         {onCancel && (
           <button
             type="button"

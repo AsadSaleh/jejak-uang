@@ -39,6 +39,9 @@ export const en = {
   'dashboard.expense': 'Expense',
   'dashboard.net': 'Net',
   'dashboard.cumulativeTitle': 'Cumulative income vs expense',
+  'dashboard.balanceTitle': 'Balance over time',
+  'dashboard.balanceSubtitle':
+    'Running balance — rises with income, falls with expense.',
   'dashboard.monthlyTitle': 'Monthly income vs expense',
   'dashboard.monthlySubtitle':
     'All months in your data — not affected by the period filter.',
@@ -75,6 +78,7 @@ export const en = {
   'accounts.add': 'Add account',
   'accounts.update': 'Update account',
   'accounts.edit': 'Edit',
+  'accounts.editTitle': 'Edit account',
   'accounts.delete': 'Delete',
   'accounts.empty': 'No accounts yet. Add your Jago pockets and other banks above.',
   'accounts.pocketBadge': 'pocket',
@@ -121,6 +125,9 @@ export const en = {
   'entries.subtitle': 'Add, edit, and delete income, expense, and transfer entries.',
   'entries.columns': 'Columns',
   'entries.add': 'Add entry',
+  'entries.import': 'Import transactions',
+  'entries.importTooltip':
+    'Automatically import transactions from a bank statement PDF',
   'entries.update': 'Update entry',
   'entries.edit': 'Edit entry',
   'entries.colDate': 'Date',
@@ -391,6 +398,9 @@ export const id: Record<TranslationKey, string> = {
   'dashboard.expense': 'Pengeluaran',
   'dashboard.net': 'Bersih',
   'dashboard.cumulativeTitle': 'Akumulasi pemasukan vs pengeluaran',
+  'dashboard.balanceTitle': 'Saldo dari waktu ke waktu',
+  'dashboard.balanceSubtitle':
+    'Saldo berjalan — naik saat pemasukan, turun saat pengeluaran.',
   'dashboard.monthlyTitle': 'Pemasukan vs pengeluaran bulanan',
   'dashboard.monthlySubtitle':
     'Semua bulan dalam data Anda — tidak terpengaruh filter periode.',
@@ -427,6 +437,7 @@ export const id: Record<TranslationKey, string> = {
   'accounts.add': 'Tambah akun',
   'accounts.update': 'Perbarui akun',
   'accounts.edit': 'Ubah',
+  'accounts.editTitle': 'Ubah akun',
   'accounts.delete': 'Hapus',
   'accounts.empty': 'Belum ada akun. Tambahkan kantong Jago dan bank lain di atas.',
   'accounts.pocketBadge': 'kantong',
@@ -474,6 +485,9 @@ export const id: Record<TranslationKey, string> = {
     'Tambah, ubah, dan hapus transaksi pemasukan, pengeluaran, dan transfer.',
   'entries.columns': 'Kolom',
   'entries.add': 'Tambah transaksi',
+  'entries.import': 'Import Transaksi',
+  'entries.importTooltip':
+    'Import transaksi secara otomatis dari file PDF mutasi bank',
   'entries.update': 'Perbarui transaksi',
   'entries.edit': 'Ubah transaksi',
   'entries.colDate': 'Tanggal',
