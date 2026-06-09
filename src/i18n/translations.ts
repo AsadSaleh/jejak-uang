@@ -48,6 +48,13 @@ export const en = {
   'dashboard.expenseByCategory': 'Expense by category',
   'dashboard.noExpenses': 'No expenses in this period.',
   'dashboard.topCategories': 'Top categories',
+  'dashboard.topMerchants': 'Top merchants',
+  'dashboard.topMerchantsSubtitle':
+    'Where the most money went this period (best-effort from transaction notes).',
+  'dashboard.calendarTitle': 'Spending calendar',
+  'dashboard.calendarSubtitle':
+    'Daily expense intensity — darker means more spent that day.',
+  'dashboard.calendarNoSpend': 'No spending',
   'dashboard.weekdayTitle': 'Average daily expense by weekday',
   'dashboard.weekdaySubtitle':
     'Total expense for each weekday in this period, divided by the number of times that weekday occurred.',
@@ -407,6 +414,13 @@ export const id: Record<TranslationKey, string> = {
   'dashboard.expenseByCategory': 'Pengeluaran per kategori',
   'dashboard.noExpenses': 'Tidak ada pengeluaran pada periode ini.',
   'dashboard.topCategories': 'Kategori teratas',
+  'dashboard.topMerchants': 'Merchant teratas',
+  'dashboard.topMerchantsSubtitle':
+    'Ke mana uang paling banyak pergi pada periode ini (perkiraan dari catatan transaksi).',
+  'dashboard.calendarTitle': 'Kalender pengeluaran',
+  'dashboard.calendarSubtitle':
+    'Intensitas pengeluaran harian — makin gelap makin boros hari itu.',
+  'dashboard.calendarNoSpend': 'Tidak ada pengeluaran',
   'dashboard.weekdayTitle': 'Rata-rata pengeluaran harian per hari',
   'dashboard.weekdaySubtitle':
     'Total pengeluaran tiap hari pada periode ini, dibagi jumlah kemunculan hari tersebut.',

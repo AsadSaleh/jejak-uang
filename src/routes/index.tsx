@@ -36,13 +36,15 @@ import {
   monthlyAggregate,
   PRESETS,
   periodToValue,
+  topMerchants,
   totals,
   valueToPeriod,
   type Period,
 } from '../lib/analytics'
 import { format } from 'date-fns'
-import { formatCurrency } from '../lib/format'
+import { formatCompactIDR, formatCurrency } from '../lib/format'
 import { hasOnboarded } from '../lib/app-data'
+import { CalendarHeatmap } from '../components/CalendarHeatmap'
 import { useI18n } from '../i18n/I18nProvider'
 import { categoryLabel } from '../i18n/translations'
 
@@ -96,6 +98,7 @@ function Dashboard() {
     [entries, period, dfLocale],
   )
   const byCategory = useMemo(() => expenseByCategory(filtered), [filtered])
+  const merchants = useMemo(() => topMerchants(filtered), [filtered])
   const monthly = useMemo(
     () => monthlyAggregate(entries, dfLocale),
     [entries, dfLocale],
@@ -221,7 +224,7 @@ function Dashboard() {
                     fontSize={11}
                     stroke="#94a3b8"
                     tickLine={false}
-                    tickFormatter={(v) => formatCurrency(Number(v)).replace('.00', '')}
+                    tickFormatter={(v) => formatCurrency(Number(v))}
                   />
                   <Tooltip
                     formatter={(v) => formatCurrency(Number(v))}
@@ -284,7 +287,7 @@ function Dashboard() {
                     fontSize={11}
                     stroke="#94a3b8"
                     tickLine={false}
-                    tickFormatter={(v) => formatCurrency(Number(v)).replace('.00', '')}
+                    tickFormatter={(v) => formatCurrency(Number(v))}
                   />
                   <Tooltip
                     formatter={(v) => formatCurrency(Number(v))}
@@ -334,7 +337,7 @@ function Dashboard() {
                       stroke="#94a3b8"
                       tickLine={false}
                       tickFormatter={(v) =>
-                        formatCurrency(Number(v)).replace('.00', '')
+                        formatCurrency(Number(v))
                       }
                     />
                     <Tooltip
@@ -504,6 +507,75 @@ function Dashboard() {
 
           <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {t('dashboard.topMerchants')}
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+              {t('dashboard.topMerchantsSubtitle')}
+            </p>
+            {merchants.length === 0 ? (
+              <div className="flex h-48 items-center justify-center text-sm text-slate-400 dark:text-slate-500">
+                {t('dashboard.noExpenses')}
+              </div>
+            ) : (
+              <div
+                className="mt-4 w-full"
+                style={{ height: merchants.length * 40 + 16 }}
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={merchants}
+                    margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      horizontal={false}
+                    />
+                    <XAxis
+                      type="number"
+                      fontSize={11}
+                      stroke="#94a3b8"
+                      tickLine={false}
+                      tickFormatter={(v) => formatCompactIDR(Number(v))}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="merchant"
+                      width={130}
+                      fontSize={11}
+                      stroke="#94a3b8"
+                      tickLine={false}
+                      tickFormatter={(v: string) =>
+                        v.length > 18 ? `${v.slice(0, 17)}…` : v
+                      }
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(148,163,184,0.1)' }}
+                      formatter={(v, _name, item) => {
+                        const count = (
+                          item?.payload as { count?: number } | undefined
+                        )?.count
+                        const amount = formatCurrency(Number(v))
+                        return count !== undefined
+                          ? `${amount} (${count}×)`
+                          : amount
+                      }}
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: '1px solid #e2e8f0',
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar dataKey="total" fill="#f43f5e" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               {t('dashboard.weekdayTitle')}
             </h2>
             <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
@@ -522,7 +594,7 @@ function Dashboard() {
                     stroke="#94a3b8"
                     tickLine={false}
                     tickFormatter={(v) =>
-                      formatCurrency(Number(v)).replace('.00', '')
+                      formatCurrency(Number(v))
                     }
                   />
                   <Tooltip
@@ -541,6 +613,18 @@ function Dashboard() {
                   />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </section>
+
+          <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {t('dashboard.calendarTitle')}
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+              {t('dashboard.calendarSubtitle')}
+            </p>
+            <div className="mt-4">
+              <CalendarHeatmap data={series} dfLocale={dfLocale} />
             </div>
           </section>
         </>

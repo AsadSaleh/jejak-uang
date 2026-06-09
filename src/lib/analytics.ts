@@ -252,6 +252,64 @@ export function expenseByCategory(entries: Entry[]): CategoryTotal[] {
   return rows.sort((a, b) => b.total - a.total)
 }
 
+export interface MerchantTotal {
+  merchant: string
+  total: number
+  count: number
+}
+
+// Best-effort merchant/payee name pulled from an entry's free-text note.
+// Indonesian statements bury the name between a transaction-type prefix and a
+// trailing reference / account / phone number, e.g.
+//   "Pembayaran QR ke ANIMO BAKERY 603416102524"  -> "ANIMO BAKERY"
+//   "Transfer BI Fast Ke BCA MAHDA 953448588"      -> "MAHDA"
+//   "Pembayaran Shopee Indonesia 896085780797077"  -> "Shopee Indonesia"
+// Heuristic by nature — note formats vary by bank — so it trades precision for
+// grouping good enough to surface where the money goes.
+const MERCHANT_NOISE_RE = /\d{3,}/g
+const MERCHANT_KE_RE = /\bke[-\s]+(.+)$/i
+const MERCHANT_VERB_RE =
+  /^(pembayaran|pmbyrn|biaya transaksi bank|biaya transfer(?: bi fast)?|biaya admin\w*|transfer(?: antar \w+| bi fast)?(?: ke| dari)?|trf|top[-\s]?up|qris?|dari|ke)\s+/i
+// Strips the routing bank that precedes a transfer recipient's name
+// ("BCA MAHDA" -> "MAHDA"). E-wallets are intentionally left in — they're the
+// actual destination, so "GoPay Customer" should stay, not collapse to
+// "Customer".
+const MERCHANT_BANK_RE =
+  /^(?:bank\s+)?(?:bca|bsi|bni|bri|mandiri|jago|permata|cimb|danamon)\s+/i
+
+function merchantName(note: string): string {
+  let s = note.replace(MERCHANT_NOISE_RE, ' ').replace(/\s+/g, ' ').trim()
+  const ke = s.match(MERCHANT_KE_RE)
+  if (ke) s = ke[1].trim()
+  let prev = ''
+  while (s !== prev) {
+    prev = s
+    s = s.replace(MERCHANT_VERB_RE, '').trim()
+  }
+  return s.replace(MERCHANT_BANK_RE, '').trim()
+}
+
+// Top expense payees/merchants by total spend. Bank-fee rows ("Biaya …") are
+// excluded — they're charges, not merchants.
+export function topMerchants(entries: Entry[], limit = 8): MerchantTotal[] {
+  const map = new Map<string, { total: number; count: number; display: string }>()
+  for (const e of entries) {
+    if (e.type !== 'expense') continue
+    if (/^\s*biaya\b/i.test(e.note)) continue
+    const name = merchantName(e.note)
+    if (name.length < 2) continue
+    const key = name.toLowerCase()
+    const cur = map.get(key) ?? { total: 0, count: 0, display: name }
+    cur.total += e.amount
+    cur.count += 1
+    map.set(key, cur)
+  }
+  return [...map.values()]
+    .map((v) => ({ merchant: v.display, total: round2(v.total), count: v.count }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit)
+}
+
 export interface MonthlyPoint {
   ym: string // 'YYYY-MM'
   label: string // 'Dec 2025'

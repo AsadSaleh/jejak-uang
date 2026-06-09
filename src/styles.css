@@ -17,3 +17,24 @@ body {
   margin: 0;
 }
 
+/* Recharts tooltip — recharts leaves the text colour to inherit, so the label
+   washes out against the default white tooltip in dark mode. Force readable
+   colours and give the tooltip a proper dark theme. */
+.recharts-default-tooltip {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  border-radius: 8px;
+  color: #0f172a !important;
+}
+.recharts-tooltip-label {
+  color: #475569 !important;
+}
+.dark .recharts-default-tooltip {
+  background-color: #1e293b !important; /* slate-800 */
+  border-color: #334155 !important; /* slate-700 */
+  color: #f1f5f9 !important; /* slate-100 */
+}
+.dark .recharts-tooltip-label {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+
