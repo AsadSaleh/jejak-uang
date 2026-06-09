@@ -2,8 +2,8 @@ import { Search, X } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import type { Account, EntryType, ImportBatch } from '../dal/types'
 import { useI18n } from '../i18n/I18nProvider'
-import { entryTypeLabel } from '../i18n/translations'
 import { CategoryCombobox } from './CategoryCombobox'
+import { TypeBadge } from './TypeBadge'
 import {
   Select,
   SelectContent,
@@ -74,14 +74,12 @@ export function EntriesFilters({
   const { t } = useI18n()
   const update = (patch: Partial<EntriesFiltersState>) =>
     setFilters({ ...filters, ...patch })
-  const typeLabel = (v: EntryType | 'all') =>
-    v === 'all' ? t('filters.allTypes') : entryTypeLabel(v, t)
 
   return (
     <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
       <div className="flex flex-wrap items-center gap-2">
         {/* Type */}
-        <div className="w-36">
+        <div className="w-44">
           <Select
             value={filters.type}
             onValueChange={(v) =>
@@ -89,12 +87,20 @@ export function EntriesFilters({
             }
           >
             <SelectTrigger className="h-8">
-              <span className="text-xs">{typeLabel(filters.type)}</span>
+              {filters.type === 'all' ? (
+                <span className="text-xs">{t('filters.allTypes')}</span>
+              ) : (
+                <TypeBadge type={filters.type} />
+              )}
             </SelectTrigger>
             <SelectContent>
               {TYPE_VALUES.map((v) => (
                 <SelectItem key={v} value={v}>
-                  {typeLabel(v)}
+                  {v === 'all' ? (
+                    <span className="text-xs">{t('filters.allTypes')}</span>
+                  ) : (
+                    <TypeBadge type={v} />
+                  )}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -160,7 +166,7 @@ export function EntriesFilters({
           <div className="w-40">
             <CategoryCombobox
               className="h-8"
-              variant="text"
+              variant="badge"
               anyLabel={t('filters.anyCategory')}
               value={filters.category}
               onChange={(v) => update({ category: v })}

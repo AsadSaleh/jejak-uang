@@ -54,9 +54,9 @@ const COLUMN_ORDER: ToggleableColumn[] = [
   'date',
   'type',
   'category',
+  'amount',
   'account',
   'note',
-  'amount',
   'added',
 ]
 
